@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "outDir": "public/dist/",
+    "sourceMap": true,
+    "module": "esnext",
+    "target": "esnext",
+    "lib": [ "esnext", "dom"],
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "allowSyntheticDefaultImports" : true, 
+    "experimentalDecorators": true,
+    "removeComments": true,
+    "esModuleInterop" : true,
+    "baseUrl": "./",
+    "paths": {
+      "public/*": ["public/*"],
+      "src/*": ["src/*"],
+      "*": [".snowpack/types/*"]
+    },
+    "typeRoots": [ "./src/typings", "./node_modules/@types"]
+  },
+  "include": [
+    "./src/"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
