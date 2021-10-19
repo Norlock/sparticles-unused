@@ -1,7 +1,8 @@
+import {Point} from "./coordinates";
 import {Particle} from "./particle";
 
 export interface GraphicalEntity {
-  mesh: any
+  mesh: Point
   transform: () => void
 }
 

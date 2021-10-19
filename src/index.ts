@@ -32,7 +32,7 @@ const initGrid = () => {
 
   const fillAttributes: FillAttributes = {
     particleCount: 51,
-    fillStyle: FillStyle.BOTTOM_HORIZONTAL_RIGHT
+    fillStyle: FillStyle.TOP_HORIZONTAL_RIGHT
   }
 
   const particleAttributes: ParticleAttributes = {

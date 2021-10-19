@@ -21,11 +21,11 @@ export class PixiParticleContainer extends PIXI.Container implements ParticleCon
   }
 
   add(particle: Particle): void {
-    this.addChild(particle.graphicalEntity.mesh)
+    this.addChild(particle.graphicalEntity.mesh as PIXI.Mesh)
   }
 
   remove(particle: Particle): void {
-    this.removeChild(particle.graphicalEntity.mesh)
+    this.removeChild(particle.graphicalEntity.mesh as PIXI.Mesh)
   }
 
   render() {

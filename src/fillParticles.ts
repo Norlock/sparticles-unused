@@ -11,8 +11,8 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
   const height = cellYCount * cellDiameter
 
   const topHorizontalLeft = (count: number) => {
-    for (let y = 0; y < height && 0 < count; y += distance) {
-      for (let x = 0; x < width && 0 < count; x += distance) {
+    for (let y = 0; y < width && 0 < count; y += distance) {
+      for (let x = 0; x < height && 0 < count; x += distance) {
         addParticle(new Coordinates(x, y))
         count--
       }
@@ -21,7 +21,7 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
 
   const topHorizontalRight = (count: number) => {
     for (let y = 0; y < height && 0 < count; y += distance) {
-      for (let x = width - 1; 0 < x && 0 < count; x -= distance) {
+      for (let x = width - distance; 0 <= x && 0 < count; x -= distance) {
         addParticle(new Coordinates(x, y))
         count--
       }
@@ -38,7 +38,7 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
   }
 
   const topVerticalRight = (count: number) => {
-    for (let x = width - 1; 0 < x && 0 < count; x -= distance) {
+    for (let x = width - distance; 0 < x && 0 < count; x -= distance) {
       for (let y = 0; y < height && 0 < count; y += distance) {
         addParticle(new Coordinates(x, y))
         count--
@@ -47,7 +47,7 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
   }
 
   const bottomHorizontalLeft = (count: number) => {
-    for (let y = height - 1; 0 < y && 0 < count; y -= distance) {
+    for (let y = height - distance; 0 < y && 0 < count; y -= distance) {
       for (let x = 0; x < width && 0 < count; x += distance) {
         addParticle(new Coordinates(x, y))
         count--
@@ -56,8 +56,8 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
   }
 
   const bottomHorizontalRight = (count: number) => {
-    for (let y = height - 1; y < height && 0 < count; y -= distance) {
-      for (let x = width - 1; 0 < x && 0 < count; x -= distance) {
+    for (let y = height - distance; 0 <= y && 0 < count; y -= distance) {
+      for (let x = width - distance; 0 <= x && 0 < count; x -= distance) {
         addParticle(new Coordinates(x, y))
         count--
       }
@@ -66,7 +66,7 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
 
   const bottomVerticalLeft = (count: number) => {
     for (let x = 0; x < width && 0 < count; x += distance) {
-      for (let y = height - 1; 0 < y && 0 < count; y -= distance) {
+      for (let y = height - distance; 0 <= y && 0 < count; y -= distance) {
         addParticle(new Coordinates(x, y))
         count--
       }
@@ -74,8 +74,8 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
   }
 
   const bottomVerticalRight = (count: number) => {
-    for (let x = width - 1; 0 < x && 0 < count; x -= distance) {
-      for (let y = height - 1; 0 < y && 0 < count; y -= distance) {
+    for (let x = width - distance; 0 < x && 0 < count; x -= distance) {
+      for (let y = height - distance; 0 <= y && 0 < count; y -= distance) {
         addParticle(new Coordinates(x, y))
         count--
       }
@@ -96,10 +96,13 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
       factory
     })
 
+
+    console.log('coords', coordinates)
+
     const xCell = Math.floor(coordinates.x / grid.options.cellDiameter)
     const yCell = Math.floor(coordinates.y / grid.options.cellDiameter)
+    //console.log('cells', xCell, yCell, grid.cells[xCell][yCell])
     grid.cells[xCell][yCell].particles.add(particle)
-    console.log('cells', xCell, yCell, grid.cells[xCell][yCell])
     grid.container.add(particle)
   }
 

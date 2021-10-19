@@ -3,19 +3,21 @@
 
 /** @type {import("snowpack").SnowpackUserConfig } */
 module.exports = {
-  mount: {
-    /* ... */
-  },
-  plugins: [
-    /* ... */
-  ],
-  packageOptions: {
-    /* ... */
-  },
-  devOptions: {
-    /* ... */
-  },
-  buildOptions: {
-    /* ... */
-  },
+    mount: {
+        /* ... */
+    },
+    plugins: ['@snowpack/plugin-typescript'],
+    packageOptions: {
+        /* ... */
+    },
+    devOptions: {
+        /* ... */
+    },
+    buildOptions: {
+        /* ... */
+    },
+    alias: {
+        src: './src',
+        public: './public'
+    }
 };

@@ -1,9 +1,9 @@
-export class Coordinates {
+export class Coordinates implements Point {
   x: number
   y: number
   z?: number
-  vx: number
-  vy: number
+  vx = 0
+  vy = 0
   vz?: number
 
   constructor(x: number, y: number, z?: number) {
@@ -11,4 +11,10 @@ export class Coordinates {
     this.y = y
     this.z = z
   }
+}
+
+export interface Point {
+  x: number,
+  y: number
+  z?: number
 }

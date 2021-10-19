@@ -1,40 +1,31 @@
-import {Particle} from './particle'
+import {CellSelector} from './cellSelector'
+import {List} from './list'
+import {ListFactory} from './listFactory'
 // Cells will add particles
 
-export interface Cell {
+export interface CellOptions {
   x: number
   y: number
-  particles: List
+  xIndex: number
+  yIndex: number
+  cellSelector: CellSelector,
+  factory: ListFactory
 }
 
-interface List {
-  add(particle: Particle): void
-}
+export class Cell {
+  readonly x: number
+  readonly y: number
+  readonly xIndex: number
+  readonly yIndex: number
+  readonly selector: CellSelector
+  readonly particles: List
 
-export class ParticleLLCell implements Cell {
-  x: number
-  y: number
-  particles: ParticleLinkedList
-
-  constructor(x: number, y: number) {
-    this.x = x
-    this.y = y
-    this.particles = new ParticleLinkedList()
-  }
-}
-
-export class ParticleLinkedList implements List {
-  head: Particle;
-
-  add(particle: Particle): void {
-    particle.previous = undefined
-
-    const previous = this.head
-    this.head = particle
-    this.head.next = previous
-
-    if (previous) {
-      previous.previous = this.head
-    }
+  constructor(options: CellOptions) {
+    this.x = options.x
+    this.y = options.y
+    this.xIndex = options.xIndex
+    this.yIndex = options.yIndex
+    this.selector = options.cellSelector
+    this.particles = options.factory.create(this)
   }
 }

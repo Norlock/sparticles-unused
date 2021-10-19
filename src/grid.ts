@@ -1,11 +1,15 @@
-import {Cell, ParticleLLCell} from "./cell"
+import {Cell} from "./cell"
+import {cellSelector} from "./cellSelector"
 import {Coordinates} from "./coordinates"
 import {FillAttributes, FillStyle} from "./fillAttributes"
 import {fillParticles} from "./fillParticles"
 import {GraphicalEntityFactory} from "./graphicalEntity"
+import {ParticleLinkedListFactory} from "./listFactory"
 import {ParticleAttributes} from "./particle"
 import {ParticleContainer} from "./particleContainer"
 import {ParticleContainerFactory} from "./particleContainerFactory"
+import {applyGravity} from "./physics/gravity"
+import {applyTransform} from "./physics/transform"
 
 export interface GridOptions {
   cellXCount: number
@@ -27,12 +31,20 @@ export class Grid {
     this.container = options.factory.create(options.coordinates)
 
     const {cellXCount, cellYCount, cellDiameter} = options
+    const selector = cellSelector(this)
 
-    for (let x = 0; x < cellXCount * cellDiameter; x += cellDiameter) {
+    for (let xIndex = 0; xIndex < cellXCount; xIndex++) {
       const cellColumn: Cell[] = []
 
-      for (let y = 0; y < cellYCount * cellDiameter; y += cellDiameter) {
-        cellColumn.push(new ParticleLLCell(x, y))
+      for (let yIndex = 0; yIndex < cellYCount; yIndex++) {
+        cellColumn.push(new Cell({
+          factory: ParticleLinkedListFactory(),
+          x: xIndex * cellDiameter,
+          y: yIndex * cellDiameter,
+          xIndex,
+          yIndex,
+          cellSelector: selector
+        }))
       }
 
       this.cells.push(cellColumn)
@@ -79,17 +91,23 @@ export class Grid {
       default:
         throw new Error("unknown fillstyle")
     }
-
-    console.log('test', this)
   }
 }
 
 const start = (self: Grid) => {
   self.isRendering = true
 
+  const callbacks = [applyGravity, applyTransform]
+
   const render = () => {
     if (self.isRendering) {
       requestAnimationFrame(render)
+
+      //self.cells.forEach(cellColumn => {
+      //cellColumn.forEach(cell => {
+      //cell.particles.iterate(callbacks)
+      //})
+      //})
 
       self.container.render()
     }
