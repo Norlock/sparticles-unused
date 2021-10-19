@@ -5,7 +5,10 @@ import {Particle, ParticleAttributes} from "./particle"
 
 export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factory: GraphicalEntityFactory) => {
   const distance = attributes.spacing + attributes.diameter
-  const {width, height} = grid.options
+  const {cellXCount, cellYCount, cellDiameter} = grid.options
+
+  const width = cellXCount * cellDiameter
+  const height = cellYCount * cellDiameter
 
   const topHorizontalLeft = (count: number) => {
     for (let y = 0; y < height && 0 < count; y += distance) {
@@ -79,13 +82,24 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
     }
   }
 
+  const blueNoise = (count: number) => {
+
+    for (let i = 0; i < count; i++) {
+
+    }
+  }
+
   const addParticle = (coordinates: Coordinates) => {
     const particle = new Particle({
       coordinates,
       attributes,
       factory
     })
-    grid.particles.push(particle)
+
+    const xCell = Math.floor(coordinates.x / grid.options.cellDiameter)
+    const yCell = Math.floor(coordinates.y / grid.options.cellDiameter)
+    grid.cells[xCell][yCell].particles.add(particle)
+    console.log('cells', xCell, yCell, grid.cells[xCell][yCell])
     grid.container.add(particle)
   }
 

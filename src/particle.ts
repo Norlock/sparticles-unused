@@ -23,6 +23,9 @@ export class Particle {
   coordinates: Coordinates
   graphicalEntity: GraphicalEntity
 
+  next?: Particle
+  previous?: Particle
+
   constructor(data: ParticleData) {
     const {coordinates, attributes, factory} = data
     this.coordinates = coordinates

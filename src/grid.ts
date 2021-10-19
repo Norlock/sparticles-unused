@@ -1,14 +1,16 @@
+import {Cell, ParticleLLCell} from "./cell"
 import {Coordinates} from "./coordinates"
 import {FillAttributes, FillStyle} from "./fillAttributes"
-import {fill, fillParticles} from "./fillParticles"
+import {fillParticles} from "./fillParticles"
 import {GraphicalEntityFactory} from "./graphicalEntity"
-import {Particle, ParticleAttributes} from "./particle"
+import {ParticleAttributes} from "./particle"
 import {ParticleContainer} from "./particleContainer"
 import {ParticleContainerFactory} from "./particleContainerFactory"
 
 export interface GridOptions {
-  width: number
-  height: number
+  cellXCount: number
+  cellYCount: number
+  cellDiameter: number
   coordinates: Coordinates
   factory: ParticleContainerFactory
 }
@@ -16,14 +18,25 @@ export interface GridOptions {
 export class Grid {
   options: GridOptions
   isRendering = false
-  particles: Particle[] = []
   container: ParticleContainer
+  cells: Cell[][] = []
+  start = () => start(this)
 
-  start: () => void
   constructor(options: GridOptions) {
     this.options = options
-    this.start = () => start(this)
     this.container = options.factory.create(options.coordinates)
+
+    const {cellXCount, cellYCount, cellDiameter} = options
+
+    for (let x = 0; x < cellXCount * cellDiameter; x += cellDiameter) {
+      const cellColumn: Cell[] = []
+
+      for (let y = 0; y < cellYCount * cellDiameter; y += cellDiameter) {
+        cellColumn.push(new ParticleLLCell(x, y))
+      }
+
+      this.cells.push(cellColumn)
+    }
   }
 
   stop() {

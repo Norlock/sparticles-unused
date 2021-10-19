@@ -25,13 +25,14 @@ const initGrid = () => {
   const grid = new Grid({
     factory: containerFactory,
     coordinates,
-    width: 100,
-    height: 100,
+    cellXCount: 5,
+    cellYCount: 5,
+    cellDiameter: 100
   })
 
   const fillAttributes: FillAttributes = {
-    particleCount: 25,
-    fillStyle: FillStyle.BOTTOM_VERTICAL_RIGHT
+    particleCount: 51,
+    fillStyle: FillStyle.BOTTOM_HORIZONTAL_RIGHT
   }
 
   const particleAttributes: ParticleAttributes = {
@@ -45,8 +46,7 @@ const initGrid = () => {
     diameter: 4
   }
 
-  const graphicalFactory = PixiGraphicalEntityFactory()
-  grid.addParticles(fillAttributes, particleAttributes, graphicalFactory)
+  grid.addParticles(fillAttributes, particleAttributes, PixiGraphicalEntityFactory())
 
   grid.start()
 
