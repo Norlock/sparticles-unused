@@ -23,23 +23,20 @@ export class ParticleLinkedList implements List {
   }
 
   remove(particle: Particle): void {
-    if (!this.head) {
+    if (this.head === particle) {
+      this.head = particle.next
       return
     }
 
-    if (this.head === particle) {
-      this.head = particle.next
-    } else {
-      const removeRecursively = (current: Particle) => {
-        if (current.next === particle) {
-          current.next = particle.next
-        } else if (current.next) {
-          removeRecursively(current.next)
-        }
+    const removeRecursively = (current: Particle) => {
+      if (current.next === particle) {
+        current.next = particle.next
+      } else if (current.next) {
+        removeRecursively(current.next)
       }
-
-      removeRecursively(this.head)
     }
+
+    removeRecursively(this.head)
   }
 
   update() {
