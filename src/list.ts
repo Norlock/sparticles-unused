@@ -1,12 +1,13 @@
 import {Cell} from "./cell";
 import {Particle} from "./particle";
+import {applyGravity} from "./physics/gravity";
+import {applyTransform} from "./physics/transform";
 
 export interface List {
   add(particle: Particle): void
-  iterate(callbacks: IterateCallback[]): void
+  remove(particle: Particle): void
+  update(): void
 }
-
-type IterateCallback = (cell: Cell, particle: Particle) => void
 
 export class ParticleLinkedList implements List {
   head: Particle;
@@ -17,26 +18,36 @@ export class ParticleLinkedList implements List {
   }
 
   add(particle: Particle): void {
-    particle.previous = undefined
-
-    const previous = this.head
+    particle.next = this.head
     this.head = particle
-    this.head.next = previous
+  }
 
-    if (previous) {
-      previous.previous = this.head
+  remove(particle: Particle): void {
+    if (!this.head) {
+      return
+    }
+
+    if (this.head === particle) {
+      this.head = particle.next
+    } else {
+      const removeRecursively = (current: Particle) => {
+        if (current.next === particle) {
+          current.next = particle.next
+        } else if (current.next) {
+          removeRecursively(current.next)
+        }
+      }
+
+      removeRecursively(this.head)
     }
   }
 
-  iterate(callbacks: IterateCallback[]) {
+  update() {
     let current = this.head
 
     while (current) {
-      callbacks.forEach(callback => {
-        callback(this.cell, current)
-      })
-
-      current = current.next
+      applyGravity(this.cell, current)
+      current = applyTransform(this.cell, current)
     }
   }
 }

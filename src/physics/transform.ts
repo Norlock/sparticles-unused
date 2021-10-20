@@ -1,8 +1,9 @@
 import {Cell} from 'src/cell'
 import {Particle} from '../particle'
 
-export const applyTransform = (cell: Cell, particle: Particle) => {
+export const applyTransform = (cell: Cell, particle: Particle): Particle => {
   const {graphicalEntity, coordinates} = particle
+  const next = particle.next
 
   const futureX = coordinates.x + coordinates.vx
   const futureY = coordinates.y + coordinates.vy
@@ -17,7 +18,10 @@ export const applyTransform = (cell: Cell, particle: Particle) => {
     graphicalEntity.mesh.y = coordinates.y
 
     if (newCell !== cell) {
+      cell.particles.remove(particle)
       newCell.particles.add(particle)
     }
   }
+
+  return next
 }

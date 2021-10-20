@@ -41,8 +41,8 @@ export const cellSelector = (grid: Grid): CellSelector => {
     const xIndex = Math.floor(x / cellDiameter)
     const yIndex = Math.floor(y / cellDiameter)
 
-    if (0 < xIndex && xIndex < cellXCount
-      && 0 < yIndex && yIndex < cellYCount) {
+    if (0 <= xIndex && xIndex < cellXCount
+      && 0 <= yIndex && yIndex < cellYCount) {
       return grid.cells[xIndex][yIndex]
     }
   }

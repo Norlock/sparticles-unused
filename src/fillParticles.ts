@@ -96,9 +96,6 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
       factory
     })
 
-
-    console.log('coords', coordinates)
-
     const xCell = Math.floor(coordinates.x / grid.options.cellDiameter)
     const yCell = Math.floor(coordinates.y / grid.options.cellDiameter)
     //console.log('cells', xCell, yCell, grid.cells[xCell][yCell])

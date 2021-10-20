@@ -8,8 +8,6 @@ import {ParticleLinkedListFactory} from "./listFactory"
 import {ParticleAttributes} from "./particle"
 import {ParticleContainer} from "./particleContainer"
 import {ParticleContainerFactory} from "./particleContainerFactory"
-import {applyGravity} from "./physics/gravity"
-import {applyTransform} from "./physics/transform"
 
 export interface GridOptions {
   cellXCount: number
@@ -97,21 +95,23 @@ export class Grid {
 const start = (self: Grid) => {
   self.isRendering = true
 
-  const callbacks = [applyGravity, applyTransform]
-
   const render = () => {
     if (self.isRendering) {
       requestAnimationFrame(render)
 
-      //self.cells.forEach(cellColumn => {
-      //cellColumn.forEach(cell => {
-      //cell.particles.iterate(callbacks)
-      //})
-      //})
+      self.cells.forEach(cellColumn => {
+        cellColumn.forEach(cell => {
+          cell.particles.update()
+        })
+      })
 
       self.container.render()
     }
   }
 
   render()
+
+  setTimeout(() => {
+    console.log('grid', self)
+  }, 10000)
 }
