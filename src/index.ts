@@ -1,11 +1,11 @@
 import * as PIXI from 'pixi.js'
-import {Coordinates} from './coordinates';
-import {FillAttributes, FillStyle} from './fillAttributes';
+import {Position} from './position';
 import {Grid} from './grid'
 import {ParticleAttributes} from './particle';
 import {PixiParticleContainer} from './particleContainer';
 import {PixiParticleContainerFactory} from './particleContainerFactory';
 import {PixiGraphicalEntityFactory} from './pixiGraphicalEntity';
+import {fillParticles} from './fillParticles';
 
 const canvas = document.getElementById('canvas')
 
@@ -20,7 +20,7 @@ canvas.append(app.view);
 
 const initGrid = () => {
   const containerFactory = PixiParticleContainerFactory(app.renderer as PIXI.Renderer)
-  const coordinates = new Coordinates(10, 10)
+  const coordinates = new Position({x: 100, y: 100})
 
   const grid = new Grid({
     factory: containerFactory,
@@ -29,11 +29,6 @@ const initGrid = () => {
     cellYCount: 5,
     cellDiameter: 100
   })
-
-  const fillAttributes: FillAttributes = {
-    particleCount: 51,
-    fillStyle: FillStyle.TOP_HORIZONTAL_RIGHT
-  }
 
   const particleAttributes: ParticleAttributes = {
     color: {
@@ -46,7 +41,8 @@ const initGrid = () => {
     diameter: 4
   }
 
-  grid.addParticles(fillAttributes, particleAttributes, PixiGraphicalEntityFactory())
+  const fill = fillParticles(grid, particleAttributes, PixiGraphicalEntityFactory())
+  fill.blueNoise(3)
 
   grid.start()
 

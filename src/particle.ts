@@ -1,4 +1,4 @@
-import {Coordinates} from "./coordinates"
+import {Position} from "./position"
 import {GraphicalEntity, GraphicalEntityFactory} from "./graphicalEntity"
 
 export interface ParticleAttributes {
@@ -14,19 +14,19 @@ export interface ParticleAttributes {
 
 export interface ParticleData {
   attributes: ParticleAttributes
-  coordinates: Coordinates
+  coordinates: Position
   factory: GraphicalEntityFactory
 }
 
 export class Particle {
   attributes: ParticleAttributes
-  coordinates: Coordinates
+  position: Position
   graphicalEntity: GraphicalEntity
   next?: Particle
 
   constructor(data: ParticleData) {
     const {coordinates, attributes, factory} = data
-    this.coordinates = coordinates
+    this.position = coordinates
     this.attributes = attributes
     this.graphicalEntity = factory.create(this)
   }

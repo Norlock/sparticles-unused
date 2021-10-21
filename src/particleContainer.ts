@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js'
 //import * as THREE from 'three'
 import {Particle} from './particle'
-import {Coordinates} from './coordinates'
+import {Point} from './position'
 
 export interface ParticleContainer {
   add(particle: Particle): void
@@ -12,7 +12,7 @@ export interface ParticleContainer {
 export class PixiParticleContainer extends PIXI.Container implements ParticleContainer {
   renderer: PIXI.Renderer
 
-  constructor(coordinates: Coordinates, renderer: PIXI.Renderer) {
+  constructor(coordinates: Point, renderer: PIXI.Renderer) {
     super()
     this.x = coordinates.x
     this.y = coordinates.y

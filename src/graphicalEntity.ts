@@ -1,4 +1,4 @@
-import {Point} from "./coordinates";
+import {Point} from "./position";
 import {Particle} from "./particle";
 
 export interface GraphicalEntity {

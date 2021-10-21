@@ -12,13 +12,13 @@ class PixiGraphicalEntity implements GraphicalEntity {
   }
 
   transform() {
-    this.mesh.x = this.particle.coordinates.x
-    this.mesh.y = this.particle.coordinates.y
+    this.mesh.x = this.particle.position.x
+    this.mesh.y = this.particle.position.y
   }
 }
 
 const createMesh = (particle: Particle) => {
-  const {coordinates, attributes} = particle
+  const {position: coordinates, attributes} = particle
   const {red, green, blue} = attributes.color
   const geometry = new PIXI.Geometry()
     .addAttribute('aVertexPosition', [-100, -50, 100, -50, 0, 100]);

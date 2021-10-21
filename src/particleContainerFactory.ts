@@ -1,14 +1,14 @@
 import * as PIXI from "pixi.js"
-import {Coordinates} from "./coordinates"
+import {Point} from "./position"
 import {ParticleContainer, PixiParticleContainer} from "./particleContainer"
 
 export interface ParticleContainerFactory {
-  create(coordinates: Coordinates): ParticleContainer
+  create(position: Point): ParticleContainer
 }
 
 export const PixiParticleContainerFactory = (renderer: PIXI.Renderer) => {
-  const create = (coordinates: Coordinates): PixiParticleContainer => {
-    return new PixiParticleContainer(coordinates, renderer);
+  const create = (position: Point): PixiParticleContainer => {
+    return new PixiParticleContainer(position, renderer);
   }
 
   return {create}
