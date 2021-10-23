@@ -37,7 +37,7 @@ const initGrid = () => {
       green: 0
     },
     weight: 1,
-    diameter: 4
+    diameter: 2
   }
 
   app.stage.addChild(grid.container as PixiParticleContainer)
@@ -45,7 +45,8 @@ const initGrid = () => {
   const fill = grid.fill(attributes, PixiGraphicalEntityFactory())
   fill.blueNoise(2)
 
-  setTimeout(() => grid.start(), 5000)
+  setTimeout(() => grid.start(), 3000)
+  setTimeout(() => console.log(grid, 8000))
   //grid.start()
 }
 

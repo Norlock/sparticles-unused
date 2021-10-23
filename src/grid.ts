@@ -102,9 +102,7 @@ const start = (self: Grid) => {
           while (current) {
             let {particle} = current
             applyGravity(particle)
-            //console.time()
             handleCollision(self, currentList, particle)
-            //console.timeEnd()
             applyTransform(particle)
 
             current = current.next
