@@ -21,7 +21,7 @@ const initGrid = () => {
   const grid = new Grid({
     cellXCount: 5,
     cellYCount: 5,
-    probabilityXCount: 10,
+    probabilityXCount: 20,
     probabilityYCount: 10,
     probabilityDiameter: 10,
     position: {
@@ -43,10 +43,14 @@ const initGrid = () => {
   app.stage.addChild(grid.container as PixiParticleContainer)
 
   const fill = grid.fill(attributes, PixiGraphicalEntityFactory())
-  fill.blueNoise(2)
+  fill.blueNoise(13)
 
   setTimeout(() => grid.start(), 3000)
-  setTimeout(() => console.log(grid, 8000))
+  setTimeout(() => {
+    grid.stop()
+    console.log(grid)
+
+  }, 8000)
   //grid.start()
 }
 

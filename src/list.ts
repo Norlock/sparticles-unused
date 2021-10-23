@@ -4,9 +4,6 @@ import {Particle} from "./particle";
 export class ProbabilityLinkedList {
   head: Probability;
 
-  constructor() {
-  }
-
   add(probability: Probability): void {
     probability.next = this.head
     this.head = probability

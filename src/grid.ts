@@ -87,15 +87,17 @@ export class Grid {
 }
 
 const start = (self: Grid) => {
-  const {probabilities} = self
+  const {probabilities, options} = self
+  const {probabilityXCount, probabilityYCount} = options
   self.isRendering = true
 
   const render = () => {
     if (self.isRendering) {
+      console.time()
       requestAnimationFrame(render)
 
-      for (let x = 0; x < probabilities.length; x++) {
-        for (let y = 0; y < probabilities.length; y++) {
+      for (let x = 0; x < probabilityXCount; x++) {
+        for (let y = 0; y < probabilityYCount; y++) {
           let currentList = probabilities[x][y]
           let current = currentList.head
 
@@ -111,6 +113,7 @@ const start = (self: Grid) => {
       }
 
       self.container.render()
+      console.timeEnd()
     }
   }
 
@@ -176,6 +179,11 @@ const addParticle = (self: Grid, particle: Particle) => {
 
   const probabilityX = Math.floor(xResidual / probabilityDiameter)
   const probabilityY = Math.floor(yResidual / probabilityDiameter)
+
+  // TODO dev var just for lining out particles
+  particle.position.x = cell.x + probabilityX * probabilityDiameter + (probabilityDiameter / 2)
+  particle.position.y = cell.y + probabilityY * probabilityDiameter + (probabilityDiameter / 2)
+
 
   self.probabilities[probabilityX][probabilityY].add(new Probability(particle, cell))
   self.container.add(particle)
