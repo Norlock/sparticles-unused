@@ -2,14 +2,13 @@ import {Point, Position} from "./position"
 import {GraphicalEntityFactory} from "./graphicalEntity"
 import {Grid} from "./grid"
 import {Particle, ParticleAttributes} from "./particle"
-import {Cell} from "./cell"
 
 export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factory: GraphicalEntityFactory) => {
-  const distance = attributes.spacing + attributes.diameter
-  const {cellXCount, cellYCount, cellDiameter} = grid.options
+  const {cellWidth, cellHeight} = grid
+  const {cellXCount, cellYCount, probabilityDiameter: distance} = grid.options
 
-  const width = cellXCount * cellDiameter
-  const height = cellYCount * cellDiameter
+  const width = cellXCount * cellWidth
+  const height = cellYCount * cellHeight
 
   const topHorizontalLeft = (count: number) => {
     for (let y = 0; y < width && 0 < count; y += distance) {
@@ -83,14 +82,14 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
     }
   }
 
-  // TODO improvement collision
+  // TODO improve duplicated tries
   const blueNoise = (particlePerCell: number) => {
     const fillCell = (cellX: number, cellY: number) => {
       const points: Point[] = []
 
       const fill = (remainder: number) => {
-        let x = cellX + Math.floor(Math.random() * cellDiameter)
-        let y = cellY + Math.floor(Math.random() * cellDiameter)
+        let x = cellX + Math.floor(Math.random() * cellWidth)
+        let y = cellY + Math.floor(Math.random() * cellHeight)
 
         for (let point of points) {
           if (point.x === x && point.y === y) {
@@ -113,23 +112,17 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
 
     for (let x = 0; x < cellXCount; x++) {
       for (let y = 0; y < cellYCount; y++) {
-        fillCell(x * cellDiameter, y * cellDiameter)
+        fillCell(x * cellWidth, y * cellHeight)
       }
     }
   }
 
   const addParticle = (position: Position) => {
-    const particle = new Particle({
-      coordinates: position,
+    grid.addParticle(new Particle({
+      position,
       attributes,
       factory
-    })
-
-    const xCell = Math.floor(position.x / grid.options.cellDiameter)
-    const yCell = Math.floor(position.y / grid.options.cellDiameter)
-    //console.log('cells', xCell, yCell, grid.cells[xCell][yCell])
-    grid.cells[xCell][yCell].particles.add(particle)
-    grid.container.add(particle)
+    }))
   }
 
   return {

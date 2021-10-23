@@ -1,48 +1,73 @@
 import {Cell} from "./cell"
-import {cellSelector} from "./cellSelector"
-import {Point} from "./position"
-import {ParticleLinkedListFactory} from "./listFactory"
+import {CellSelector, cellSelector} from "./cellSelector"
+import {fillParticles} from "./fillParticles"
+import {GraphicalEntityFactory} from "./graphicalEntity"
+import {Particle, ParticleAttributes} from "./particle"
 import {ParticleContainer} from "./particleContainer"
 import {ParticleContainerFactory} from "./particleContainerFactory"
+import {applyTransform} from "./physics/transform"
+import {Point} from "./position"
 
 export interface GridOptions {
+  probabilityXCount: number
+  probabilityYCount: number
+  probabilityDiameter: number
   cellXCount: number
   cellYCount: number
-  cellDiameter: number
-  coordinates: Point
-  factory: ParticleContainerFactory
+  position: Point
+}
+
+export class Probability {
+  particle: Particle
+  cell: Cell
 }
 
 export class Grid {
   options: GridOptions
-  isRendering = false
+  probabilities: Probability[][][]
+  cells: Cell[][]
+  cellWidth: number
+  cellHeight: number
   container: ParticleContainer
-  cells: Cell[][] = []
-  start = () => start(this)
+  isRendering = false
 
-  constructor(options: GridOptions) {
+  constructor(options: GridOptions, factory: ParticleContainerFactory) {
+    const {probabilityXCount, probabilityYCount, probabilityDiameter, position} = options
+
     this.options = options
-    this.container = options.factory.create(options.coordinates)
+    this.cellWidth = probabilityXCount * probabilityDiameter
+    this.cellHeight = probabilityYCount * probabilityDiameter
 
-    const {cellXCount, cellYCount, cellDiameter} = options
-    const selector = cellSelector(this)
+    this.probabilities = createProbabilityGrid(probabilityXCount, probabilityYCount)
+    this.cells = createCellGrid(this)
+    this.container = factory.create(position)
 
-    for (let xIndex = 0; xIndex < cellXCount; xIndex++) {
-      const cellColumn: Cell[] = []
+    console.log('grid', this.probabilities)
+    console.log('cells', this.cells)
+  }
 
-      for (let yIndex = 0; yIndex < cellYCount; yIndex++) {
-        cellColumn.push(new Cell({
-          factory: ParticleLinkedListFactory(),
-          x: xIndex * cellDiameter,
-          y: yIndex * cellDiameter,
-          xIndex,
-          yIndex,
-          cellSelector: selector
-        }))
-      }
+  addParticle(particle: Particle) {
+    addParticle(this, particle)
+  }
 
-      this.cells.push(cellColumn)
+  fill(attributes: ParticleAttributes, factory: GraphicalEntityFactory) {
+    return fillParticles(this, attributes, factory)
+  }
+
+  getCell(x: number, y: number) {
+    const {cellXCount, cellYCount} = this.options
+    const xIndex = Math.floor(x / this.cellWidth)
+    const yIndex = Math.floor(y / this.cellHeight)
+
+    if (0 <= xIndex && xIndex < cellXCount
+      && 0 <= yIndex && yIndex < cellYCount) {
+      return this.cells[xIndex][yIndex]
     }
+  }
+
+  start() {
+    this.isRendering = true
+    start(this)
   }
 
   stop() {
@@ -51,25 +76,78 @@ export class Grid {
 }
 
 const start = (self: Grid) => {
-  self.isRendering = true
+  const {probabilities} = self
 
   const render = () => {
     if (self.isRendering) {
       requestAnimationFrame(render)
 
-      self.cells.forEach(cellColumn => {
-        cellColumn.forEach(cell => {
-          cell.particles.update()
-        })
-      })
-
+      for (let x = 0; x < probabilities.length; x++) {
+        for (let y = 0; y < probabilities.length; y++) {
+          for (let probability of probabilities[x][y]) {
+            applyTransform(self, probability.particle)
+          }
+        }
+      }
       self.container.render()
     }
   }
 
   render()
+}
 
-  setTimeout(() => {
-    console.log('grid', self)
-  }, 10000)
+const createProbabilityGrid = (probabilityXCount: number, probabilityYCount: number) => {
+  const grid: Probability[][][] = []
+
+  // Create probabilities
+  for (let x = 0; x < probabilityXCount; x++) {
+    let column: Probability[][] = []
+    grid.push(column)
+
+    for (let y = 0; y < probabilityYCount; y++) {
+      column.push([])
+    }
+  }
+
+  return grid
+}
+
+const createCellGrid = (self: Grid) => {
+  const cells: Cell[][] = []
+  const {cellWidth, cellHeight, options} = self
+  const {cellXCount, cellYCount} = options
+
+  for (let xIndex = 0; xIndex < cellXCount; xIndex++) {
+    let column: Cell[] = []
+    cells.push(column)
+
+    for (let yIndex = 0; yIndex < cellYCount; yIndex++) {
+      let x = xIndex * cellWidth
+      let y = yIndex * cellHeight
+
+      column.push(new Cell({x, y}))
+    }
+  }
+
+  return cells
+}
+
+const addParticle = (self: Grid, particle: Particle) => {
+  const {cellWidth, cellHeight, options} = self
+  const {probabilityDiameter} = options
+
+  const cell = self.getCell(particle.position.x, particle.position.y)
+
+  const x = particle.position.x % cellWidth
+  const y = particle.position.y % cellHeight
+
+  const probabilityX = Math.floor(x / probabilityDiameter)
+  const probabilityY = Math.floor(y / probabilityDiameter)
+
+  self.probabilities[probabilityX][probabilityY].push({
+    particle,
+    cell
+  })
+
+  self.container.add(particle)
 }

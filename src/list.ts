@@ -7,6 +7,7 @@ export interface List {
   add(particle: Particle): void
   remove(particle: Particle): void
   update(): void
+  head: Particle
 }
 
 export class ParticleLinkedList implements List {

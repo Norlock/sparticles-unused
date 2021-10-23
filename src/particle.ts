@@ -3,7 +3,6 @@ import {GraphicalEntity, GraphicalEntityFactory} from "./graphicalEntity"
 
 export interface ParticleAttributes {
   diameter: number
-  spacing: number
   color: {
     red: number,
     green: number,
@@ -14,7 +13,7 @@ export interface ParticleAttributes {
 
 export interface ParticleData {
   attributes: ParticleAttributes
-  coordinates: Position
+  position: Position
   factory: GraphicalEntityFactory
 }
 
@@ -25,8 +24,8 @@ export class Particle {
   next?: Particle
 
   constructor(data: ParticleData) {
-    const {coordinates, attributes, factory} = data
-    this.position = coordinates
+    const {position, attributes, factory} = data
+    this.position = position
     this.attributes = attributes
     this.graphicalEntity = factory.create(this)
   }

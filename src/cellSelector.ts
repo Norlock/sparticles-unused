@@ -3,43 +3,15 @@ import {Grid} from './grid'
 
 
 export interface CellSelector {
-  getAbove(current: Cell): Cell
-  getBelow(current: Cell): Cell
-  getLeft(current: Cell): Cell
-  getRight(current: Cell): Cell
   getCell(x: number, y: number): Cell
 }
 
 export const cellSelector = (grid: Grid): CellSelector => {
-  const {cellXCount, cellYCount, cellDiameter} = grid.options
-
-  const getAbove = (current: Cell): Cell => {
-    if (0 < current.yIndex) {
-      return grid.cells[current.xIndex][current.yIndex - 1]
-    }
-  }
-
-  const getBelow = (current: Cell): Cell => {
-    if (current.yIndex < cellYCount) {
-      return grid.cells[current.xIndex][current.yIndex + 1]
-    }
-  }
-
-  const getLeft = (current: Cell): Cell => {
-    if (0 < current.xIndex) {
-      return grid.cells[current.xIndex - 1][current.yIndex]
-    }
-  }
-
-  const getRight = (current: Cell): Cell => {
-    if (current.xIndex < cellXCount) {
-      return grid.cells[current.xIndex + 1][current.yIndex]
-    }
-  }
+  const {cellXCount, cellYCount} = grid.options
 
   const getCell = (x: number, y: number) => {
-    const xIndex = Math.floor(x / cellDiameter)
-    const yIndex = Math.floor(y / cellDiameter)
+    const xIndex = Math.floor(x / grid.cellWidth)
+    const yIndex = Math.floor(y / grid.cellHeight)
 
     if (0 <= xIndex && xIndex < cellXCount
       && 0 <= yIndex && yIndex < cellYCount) {
@@ -47,11 +19,5 @@ export const cellSelector = (grid: Grid): CellSelector => {
     }
   }
 
-  return {
-    getAbove,
-    getBelow,
-    getLeft,
-    getRight,
-    getCell
-  }
+  return {getCell}
 }
