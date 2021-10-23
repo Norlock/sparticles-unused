@@ -98,7 +98,7 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
           }
         }
 
-        const point: Point = {x, y}
+        const point = new Position({x, y})
         points.push(point)
         addParticle(point)
 

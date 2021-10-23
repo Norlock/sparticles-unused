@@ -25,6 +25,7 @@ export class Particle {
 
   constructor(data: ParticleData) {
     const {position, attributes, factory} = data
+    console.log('test', position)
     this.position = position
     this.attributes = attributes
     this.graphicalEntity = factory.create(this)

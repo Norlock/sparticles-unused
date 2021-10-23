@@ -3,28 +3,12 @@ import {Particle} from '../particle'
 
 // TODO collission detection can futureX, futureY take place?
 // If not where should it move to?
-export const applyTransform = (grid: Grid, particle: Particle): void => {
-  particle.graphicalEntity.mesh.x = particle.position.x
-  particle.graphicalEntity.mesh.y = particle.position.y
-  //const {graphicalEntity, position: coordinates} = particle
-  //const next = particle.next
+export const applyTransform = (particle: Particle): void => {
+  const {position} = particle
 
-  //const futureX = coordinates.x + coordinates.vx
-  //const futureY = coordinates.y + coordinates.vy
+  position.x += position.vx
+  position.y += position.vy
 
-  //const newCell = cell.selector.getCell(futureX, futureY)
-
-  //if (newCell) {
-  //coordinates.x = futureX
-  //coordinates.y = futureY
-
-  //graphicalEntity.mesh.x = coordinates.x
-  //graphicalEntity.mesh.y = coordinates.y
-
-  //if (newCell !== cell) {
-  //cell.particles.remove(particle)
-  //newCell.particles.add(particle)
-  //}
-  //}
+  particle.graphicalEntity.mesh.x = position.x
+  particle.graphicalEntity.mesh.y = position.y
 }
-

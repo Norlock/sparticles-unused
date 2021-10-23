@@ -1,10 +1,12 @@
 import {Cell} from "./cell"
-import {CellSelector, cellSelector} from "./cellSelector"
 import {fillParticles} from "./fillParticles"
 import {GraphicalEntityFactory} from "./graphicalEntity"
+import {ProbabilityLinkedList} from "./list"
 import {Particle, ParticleAttributes} from "./particle"
 import {ParticleContainer} from "./particleContainer"
 import {ParticleContainerFactory} from "./particleContainerFactory"
+import {handleCollision} from "./physics/collision"
+import {applyGravity} from "./physics/gravity"
 import {applyTransform} from "./physics/transform"
 import {Point} from "./position"
 
@@ -20,11 +22,17 @@ export interface GridOptions {
 export class Probability {
   particle: Particle
   cell: Cell
+  next?: Probability
+
+  constructor(particle: Particle, cell: Cell) {
+    this.particle = particle
+    this.cell = cell
+  }
 }
 
 export class Grid {
   options: GridOptions
-  probabilities: Probability[][][]
+  probabilities: ProbabilityLinkedList[][]
   cells: Cell[][]
   cellWidth: number
   cellHeight: number
@@ -65,8 +73,11 @@ export class Grid {
     }
   }
 
+  getProbabilities(x: number, y: number) {
+    return getProbabilities(this, x, y)
+  }
+
   start() {
-    this.isRendering = true
     start(this)
   }
 
@@ -77,6 +88,7 @@ export class Grid {
 
 const start = (self: Grid) => {
   const {probabilities} = self
+  self.isRendering = true
 
   const render = () => {
     if (self.isRendering) {
@@ -84,11 +96,22 @@ const start = (self: Grid) => {
 
       for (let x = 0; x < probabilities.length; x++) {
         for (let y = 0; y < probabilities.length; y++) {
-          for (let probability of probabilities[x][y]) {
-            applyTransform(self, probability.particle)
+          let currentList = probabilities[x][y]
+          let current = currentList.head
+
+          while (current) {
+            let {particle} = current
+            applyGravity(particle)
+            //console.time()
+            handleCollision(self, currentList, particle)
+            //console.timeEnd()
+            applyTransform(particle)
+
+            current = current.next
           }
         }
       }
+
       self.container.render()
     }
   }
@@ -97,15 +120,15 @@ const start = (self: Grid) => {
 }
 
 const createProbabilityGrid = (probabilityXCount: number, probabilityYCount: number) => {
-  const grid: Probability[][][] = []
+  const grid: ProbabilityLinkedList[][] = []
 
   // Create probabilities
   for (let x = 0; x < probabilityXCount; x++) {
-    let column: Probability[][] = []
+    let column: ProbabilityLinkedList[] = []
     grid.push(column)
 
     for (let y = 0; y < probabilityYCount; y++) {
-      column.push([])
+      column.push(new ProbabilityLinkedList())
     }
   }
 
@@ -132,22 +155,30 @@ const createCellGrid = (self: Grid) => {
   return cells
 }
 
+const getProbabilities = (self: Grid, x: number, y: number) => {
+  const {cellWidth, cellHeight, options} = self
+  const {probabilityDiameter} = options
+
+  const xResidual = x % cellWidth
+  const yResidual = y % cellHeight
+
+  const probabilityX = Math.floor(xResidual / probabilityDiameter)
+  const probabilityY = Math.floor(yResidual / probabilityDiameter)
+
+  return self.probabilities[probabilityX][probabilityY]
+}
+
 const addParticle = (self: Grid, particle: Particle) => {
   const {cellWidth, cellHeight, options} = self
   const {probabilityDiameter} = options
 
   const cell = self.getCell(particle.position.x, particle.position.y)
+  const xResidual = particle.position.x % cellWidth
+  const yResidual = particle.position.y % cellHeight
 
-  const x = particle.position.x % cellWidth
-  const y = particle.position.y % cellHeight
+  const probabilityX = Math.floor(xResidual / probabilityDiameter)
+  const probabilityY = Math.floor(yResidual / probabilityDiameter)
 
-  const probabilityX = Math.floor(x / probabilityDiameter)
-  const probabilityY = Math.floor(y / probabilityDiameter)
-
-  self.probabilities[probabilityX][probabilityY].push({
-    particle,
-    cell
-  })
-
+  self.probabilities[probabilityX][probabilityY].add(new Probability(particle, cell))
   self.container.add(particle)
 }

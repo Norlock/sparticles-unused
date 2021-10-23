@@ -45,7 +45,8 @@ const initGrid = () => {
   const fill = grid.fill(attributes, PixiGraphicalEntityFactory())
   fill.blueNoise(2)
 
-  grid.start()
+  setTimeout(() => grid.start(), 5000)
+  //grid.start()
 }
 
 initGrid()

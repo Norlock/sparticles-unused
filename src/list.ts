@@ -1,51 +1,31 @@
-import {Cell} from "./cell";
+import {Probability} from "./grid";
 import {Particle} from "./particle";
-import {applyGravity} from "./physics/gravity";
-import {applyTransform} from "./physics/transform";
 
-export interface List {
-  add(particle: Particle): void
-  remove(particle: Particle): void
-  update(): void
-  head: Particle
-}
+export class ProbabilityLinkedList {
+  head: Probability;
 
-export class ParticleLinkedList implements List {
-  head: Particle;
-  cell: Cell
-
-  constructor(cell: Cell) {
-    this.cell = cell
+  constructor() {
   }
 
-  add(particle: Particle): void {
-    particle.next = this.head
-    this.head = particle
+  add(probability: Probability): void {
+    probability.next = this.head
+    this.head = probability
   }
 
   remove(particle: Particle): void {
-    if (this.head === particle) {
-      this.head = particle.next
+    if (this.head.particle === particle) {
+      this.head = this.head.next
       return
     }
 
-    const removeRecursively = (current: Particle) => {
-      if (current.next === particle) {
-        current.next = particle.next
+    const removeRecursively = (current: Probability) => {
+      if (current.next.particle === particle) {
+        current.next = current.next?.next
       } else if (current.next) {
         removeRecursively(current.next)
       }
     }
 
     removeRecursively(this.head)
-  }
-
-  update() {
-    let current = this.head
-
-    while (current) {
-      applyGravity(this.cell, current)
-      current = applyTransform(this.cell, current)
-    }
   }
 }

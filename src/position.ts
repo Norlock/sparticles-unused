@@ -7,13 +7,12 @@ export interface PositionOptions {
   vz?: number
 }
 
-
 export class Position implements Point {
   x: number
   y: number
   z?: number
-  vx?: number
-  vy?: number
+  vx: number
+  vy: number
   vz?: number
 
   constructor(options: PositionOptions) {
