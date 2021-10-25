@@ -21,7 +21,6 @@ export class Particle {
   attributes: ParticleAttributes
   position: Position
   graphicalEntity: GraphicalEntity
-  next?: Particle
 
   constructor(data: ParticleData) {
     const {position, attributes, factory} = data

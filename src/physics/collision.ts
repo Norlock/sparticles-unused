@@ -39,6 +39,8 @@ export const handleCollision = (grid: Grid, currentList: ProbabilityLinkedList, 
 }
 
 const updatePhysics = (particle: Particle) => {
+  // if x movement possible don't reset it
   particle.position.vx = 0
+  // if y movement possible don't reset it
   particle.position.vy = 0
 }

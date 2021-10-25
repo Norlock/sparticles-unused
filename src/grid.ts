@@ -8,6 +8,7 @@ import {ParticleContainerFactory} from "./particleContainerFactory"
 import {handleCollision} from "./physics/collision"
 import {applyGravity} from "./physics/gravity"
 import {applyTransform} from "./physics/transform"
+import {applyForce} from "./physics/force"
 import {Point} from "./position"
 
 export interface GridOptions {
@@ -17,6 +18,11 @@ export interface GridOptions {
   cellXCount: number
   cellYCount: number
   position: Point
+  force?: {
+    vx?: number
+    vy?: number
+    frameIteration: number
+  }
 }
 
 export class Probability {
@@ -49,6 +55,8 @@ export class Grid {
     this.probabilities = createProbabilityGrid(probabilityXCount, probabilityYCount)
     this.cells = createCellGrid(this)
     this.container = factory.create(position)
+
+    this.container.drawDevGrid(options)
 
     console.log('grid', this.probabilities)
     console.log('cells', this.cells)
@@ -91,10 +99,12 @@ const start = (self: Grid) => {
   const {probabilityXCount, probabilityYCount} = options
   self.isRendering = true
 
+  let i = 0
   const render = () => {
     if (self.isRendering) {
       console.time()
       requestAnimationFrame(render)
+      i++
 
       for (let x = 0; x < probabilityXCount; x++) {
         for (let y = 0; y < probabilityYCount; y++) {
@@ -106,6 +116,10 @@ const start = (self: Grid) => {
             applyGravity(particle)
             handleCollision(self, currentList, particle)
             applyTransform(particle)
+
+            if (i % 3 === 0) {
+              applyForce(particle, 1)
+            }
 
             current = current.next
           }
