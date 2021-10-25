@@ -85,22 +85,25 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
   // TODO improve duplicated tries
   const blueNoise = (particlePerCell: number) => {
     const fillCell = (cellX: number, cellY: number) => {
-      const points: Point[] = []
 
       const fill = (remainder: number) => {
         let x = cellX + Math.floor(Math.random() * cellWidth)
         let y = cellY + Math.floor(Math.random() * cellHeight)
 
-        for (let point of points) {
-          if (point.x === x && point.y === y) {
+        const cell = grid.getCell(x, y)
+        const list = grid.getProbabilities(x, y)
+        let current = list.head
+
+        while (current) {
+          if (current.cell === cell) {
             fill(remainder)
             return
           }
+
+          current = current.next
         }
 
-        const point = new Position({x, y})
-        points.push(point)
-        addParticle(point)
+        addParticle(new Position({x, y}))
 
         if (0 < --remainder) {
           fill(remainder)

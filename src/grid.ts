@@ -102,7 +102,6 @@ const start = (self: Grid) => {
   let i = 0
   const render = () => {
     if (self.isRendering) {
-      console.time()
       requestAnimationFrame(render)
       i++
 
@@ -127,7 +126,6 @@ const start = (self: Grid) => {
       }
 
       self.container.render()
-      console.timeEnd()
     }
   }
 
