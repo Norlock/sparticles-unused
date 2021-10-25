@@ -4,44 +4,43 @@ import {ProbabilityLinkedList} from "src/list"
 import {Particle} from "src/particle"
 import {Probability} from "src/probability"
 
-export const handleCollision = (grid: Grid, currentList: ProbabilityLinkedList, particle: Particle): void => {
+export const handleCollision = (grid: Grid, currentSpot: ProbabilityLinkedList, particle: Particle): void => {
   const {position} = particle
 
   const newX = position.x + position.vx
   const newY = position.y + position.vy
 
-  const newXYList = grid.getProbabilities(newX, newY)
-  if (currentList !== newXYList) {
+  const newXYSpot = grid.getSpot(newX, newY)
+  if (currentSpot !== newXYSpot) {
     const newCell = grid.getCell(newX, newY)
 
-    if (!doesCollide(newXYList, newCell)) {
-      handleNoCollision(currentList, newXYList, particle, newCell)
+    if (!doesCollide(newXYSpot, newCell)) {
+      handleNoCollision(currentSpot, newXYSpot, particle, newCell)
       return
     }
 
-    const newXList = grid.getProbabilities(newX, position.y)
-    if (currentList !== newXList) {
+    const newXSpot = grid.getSpot(newX, position.y)
+    if (currentSpot !== newXSpot) {
       const newCell = grid.getCell(newX, position.y)
 
-      // if x movement possible don't reset it
-      if (doesCollide(newXList, newCell)) {
+      if (doesCollide(newXSpot, newCell)) {
         particle.position.vx = 0
       } else {
         particle.position.vy = 0
-        handleNoCollision(currentList, newXList, particle, newCell)
+        handleNoCollision(currentSpot, newXSpot, particle, newCell)
         return
       }
     }
 
-    const newYList = grid.getProbabilities(position.x, newY)
-    if (currentList !== newYList) {
+    const newYSpot = grid.getSpot(position.x, newY)
+    if (currentSpot !== newYSpot) {
       const newCell = grid.getCell(position.x, newY)
 
-      if (doesCollide(newYList, newCell)) {
+      if (doesCollide(newYSpot, newCell)) {
         particle.position.vy = 0
       } else {
         particle.position.vx = 0
-        handleNoCollision(currentList, newYList, particle, newCell)
+        handleNoCollision(currentSpot, newYSpot, particle, newCell)
         return
       }
     }

@@ -21,7 +21,7 @@ const initGrid = () => {
   const grid = new Grid({
     cellXCount: 5,
     cellYCount: 5,
-    probabilityXCount: 20,
+    probabilityXCount: 15,
     probabilityYCount: 15,
     probabilityDiameter: 10,
     position: {
@@ -30,15 +30,16 @@ const initGrid = () => {
     },
     force: {
       vx: 1,
-      frameIteration: 3
-    }
+      frameIteration: 1
+    },
+    showUI: true
   }, containerFactory)
 
   const attributes: ParticleAttributes = {
     color: {
       red: 255,
-      blue: 100,
-      green: 0
+      blue: 0,
+      green: 255
     },
     weight: 1,
     diameter: 5

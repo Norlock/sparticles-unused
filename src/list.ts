@@ -1,7 +1,7 @@
 import {Particle} from "./particle";
 import {Probability} from "./probability";
 
-export class ProbabilityLinkedList {
+export class ProbabilityList {
   head: Probability;
 
   add(probability: Probability): void {

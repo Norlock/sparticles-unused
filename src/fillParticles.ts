@@ -17,6 +17,8 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
         count--
       }
     }
+
+    grid.editor.update()
   }
 
   const topHorizontalRight = (count: number) => {
@@ -26,6 +28,8 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
         count--
       }
     }
+
+    grid.editor.update()
   }
 
   const topVerticalLeft = (count: number) => {
@@ -35,6 +39,8 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
         count--
       }
     }
+
+    grid.editor.update()
   }
 
   const topVerticalRight = (count: number) => {
@@ -44,6 +50,8 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
         count--
       }
     }
+
+    grid.editor.update()
   }
 
   const bottomHorizontalLeft = (count: number) => {
@@ -53,6 +61,8 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
         count--
       }
     }
+
+    grid.editor.update()
   }
 
   const bottomHorizontalRight = (count: number) => {
@@ -62,6 +72,8 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
         count--
       }
     }
+
+    grid.editor.update()
   }
 
   const bottomVerticalLeft = (count: number) => {
@@ -71,6 +83,8 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
         count--
       }
     }
+
+    grid.editor.update()
   }
 
   const bottomVerticalRight = (count: number) => {
@@ -80,6 +94,8 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
         count--
       }
     }
+
+    grid.editor.update()
   }
 
   // TODO improve duplicated tries
@@ -91,7 +107,7 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
         let y = cellY + Math.floor(Math.random() * cellHeight)
 
         const cell = grid.getCell(x, y)
-        const list = grid.getProbabilities(x, y)
+        const list = grid.getSpot(x, y)
         let current = list.head
 
         while (current) {
@@ -118,6 +134,8 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
         fillCell(x * cellWidth, y * cellHeight)
       }
     }
+
+    grid.editor.update()
   }
 
   const addParticle = (position: Position) => {

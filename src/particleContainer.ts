@@ -47,8 +47,15 @@ export class PixiParticleContainer extends PIXI.Container implements ParticleCon
 
     for (let x = 0; x < xCount; x++) {
       for (let y = 0; y < yCount; y++) {
+        let color: number
+        if (x % probabilityXCount === 0 || y % probabilityYCount === 0) {
+          color = 0x5555ff
+        } else {
+          color = 0xffffff
+        }
+
         this.devGrid
-          .lineStyle(1, 0xffffff, 0.1)
+          .lineStyle(1, color, 0.1)
           .drawRect(x * probabilityDiameter, y * probabilityDiameter, probabilityDiameter, probabilityDiameter)
 
       }
