@@ -53,7 +53,6 @@ const createMesh = (particle: Particle) => {
   return triangle
 }
 
-
 export const PixiGraphicalEntityFactory = (): GraphicalEntityFactory => {
   const create = (particle: Particle): GraphicalEntity => {
     return new PixiGraphicalEntity(particle)

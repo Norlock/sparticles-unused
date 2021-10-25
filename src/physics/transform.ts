@@ -1,4 +1,3 @@
-import {Grid} from 'src/grid'
 import {Particle} from '../particle'
 
 // TODO collission detection can futureX, futureY take place?

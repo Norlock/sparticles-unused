@@ -27,6 +27,10 @@ const initGrid = () => {
     position: {
       x: 100,
       y: 100
+    },
+    force: {
+      vx: 1,
+      frameIteration: 3
     }
   }, containerFactory)
 

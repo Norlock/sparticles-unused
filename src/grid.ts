@@ -10,6 +10,13 @@ import {applyGravity} from "./physics/gravity"
 import {applyTransform} from "./physics/transform"
 import {applyForce} from "./physics/force"
 import {Point} from "./position"
+import {Probability} from "./probability"
+
+export interface Force {
+  vx?: number
+  vy?: number
+  frameIteration: number
+}
 
 export interface GridOptions {
   probabilityXCount: number
@@ -18,22 +25,7 @@ export interface GridOptions {
   cellXCount: number
   cellYCount: number
   position: Point
-  force?: {
-    vx?: number
-    vy?: number
-    frameIteration: number
-  }
-}
-
-export class Probability {
-  particle: Particle
-  cell: Cell
-  next?: Probability
-
-  constructor(particle: Particle, cell: Cell) {
-    this.particle = particle
-    this.cell = cell
-  }
+  force?: Force
 }
 
 export class Grid {
@@ -96,7 +88,7 @@ export class Grid {
 
 const start = (self: Grid) => {
   const {probabilities, options} = self
-  const {probabilityXCount, probabilityYCount} = options
+  const {probabilityXCount, probabilityYCount, force} = options
   self.isRendering = true
 
   let i = 0
@@ -116,8 +108,8 @@ const start = (self: Grid) => {
             handleCollision(self, currentList, particle)
             applyTransform(particle)
 
-            if (i % 3 === 0) {
-              applyForce(particle, 1)
+            if (force && i % force.frameIteration === 0) {
+              applyForce(particle, force)
             }
 
             current = current.next

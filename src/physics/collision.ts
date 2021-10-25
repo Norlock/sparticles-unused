@@ -1,6 +1,8 @@
-import {Grid, Probability} from "src/grid"
+import {Cell} from "src/cell"
+import {Grid} from "src/grid"
 import {ProbabilityLinkedList} from "src/list"
 import {Particle} from "src/particle"
+import {Probability} from "src/probability"
 
 export const handleCollision = (grid: Grid, currentList: ProbabilityLinkedList, particle: Particle): void => {
   const {position} = particle
@@ -8,39 +10,61 @@ export const handleCollision = (grid: Grid, currentList: ProbabilityLinkedList, 
   const newX = position.x + position.vx
   const newY = position.y + position.vy
 
-  const newCell = grid.getCell(newX, newY)
-  if (newCell) {
-    const newList = grid.getProbabilities(newX, newY)
+  const newXYList = grid.getProbabilities(newX, newY)
+  if (currentList !== newXYList) {
+    const newCell = grid.getCell(newX, newY)
 
-    let hasCollision = false
-    let current = newList.head
+    if (!doesCollide(newXYList, newCell)) {
+      handleNoCollision(currentList, newXYList, particle, newCell)
+      return
+    }
 
-    // New probability
-    if (currentList !== newList) {
-      while (current) {
-        if (newCell === current.cell) {
-          hasCollision = true
-          break
-        }
-        current = current.next
-      }
+    const newXList = grid.getProbabilities(newX, position.y)
+    if (currentList !== newXList) {
+      const newCell = grid.getCell(newX, position.y)
 
-      if (hasCollision) {
-        updatePhysics(particle)
+      // if x movement possible don't reset it
+      if (doesCollide(newXList, newCell)) {
+        particle.position.vx = 0
       } else {
-        currentList.remove(particle)
-        newList.add(new Probability(particle, newCell))
+        particle.position.vy = 0
+        handleNoCollision(currentList, newXList, particle, newCell)
+        return
       }
     }
-  } else {
-    updatePhysics(particle)
-  }
 
+    const newYList = grid.getProbabilities(position.x, newY)
+    if (currentList !== newYList) {
+      const newCell = grid.getCell(position.x, newY)
+
+      if (doesCollide(newYList, newCell)) {
+        particle.position.vy = 0
+      } else {
+        particle.position.vx = 0
+        handleNoCollision(currentList, newYList, particle, newCell)
+        return
+      }
+    }
+  }
 }
 
-const updatePhysics = (particle: Particle) => {
-  // if x movement possible don't reset it
-  particle.position.vx = 0
-  // if y movement possible don't reset it
-  particle.position.vy = 0
+const doesCollide = (list: ProbabilityLinkedList, cell?: Cell) => {
+  if (!cell) {
+    return true
+  }
+
+  let current = list.head
+
+  while (current) {
+    if (cell === current.cell) {
+      return true
+    }
+    current = current.next
+  }
+  return false
+}
+
+const handleNoCollision = (currentList: ProbabilityLinkedList, newList: ProbabilityLinkedList, particle: Particle, newCell: Cell) => {
+  currentList.remove(particle)
+  newList.add(new Probability(particle, newCell))
 }

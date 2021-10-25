@@ -1,4 +1,4 @@
-import {Point, Position} from "./position"
+import {Position} from "./position"
 import {GraphicalEntityFactory} from "./graphicalEntity"
 import {Grid} from "./grid"
 import {Particle, ParticleAttributes} from "./particle"

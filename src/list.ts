@@ -1,5 +1,5 @@
-import {Probability} from "./grid";
 import {Particle} from "./particle";
+import {Probability} from "./probability";
 
 export class ProbabilityLinkedList {
   head: Probability;

@@ -1,11 +1,12 @@
+import {Force} from "src/grid"
 import {Particle} from "../particle"
 
-export const applyForce = (particle: Particle, vx?: number, vy?: number) => {
-  if (vx) {
-    particle.position.vx = vx
+export const applyForce = (particle: Particle, force: Force) => {
+  if (force.vx) {
+    particle.position.vx = force.vx
   }
 
-  if (vy) {
-    particle.position.vy = vy
+  if (force.vy) {
+    particle.position.vy = force.vy
   }
 }
