@@ -4,6 +4,7 @@ import {ParticleAttributes} from './particle';
 import {PixiParticleContainer} from './particleContainer';
 import {PixiParticleContainerFactory} from './particleContainerFactory';
 import {PixiGraphicalEntityFactory} from './pixiGraphicalEntity';
+import {bouncingBalls} from './physics/forces/patterns';
 
 const canvas = document.getElementById('canvas')
 
@@ -28,10 +29,6 @@ const initGrid = () => {
       x: 100,
       y: 100
     },
-    force: {
-      vx: -1,
-      frameIteration: 1
-    },
     showUI: true
   }, containerFactory)
 
@@ -42,13 +39,13 @@ const initGrid = () => {
       green: 255
     },
     weight: 1,
-    diameter: 5
+    diameter: 4
   }
 
   app.stage.addChild(grid.container as PixiParticleContainer)
 
   const fill = grid.fill(attributes, PixiGraphicalEntityFactory())
-  fill.blueNoise(10)
+  fill.blueNoise(10, bouncingBalls)
 
   setTimeout(() => grid.start(), 3000)
   setTimeout(() => console.log(grid), 5000)

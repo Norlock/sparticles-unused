@@ -6,9 +6,8 @@ import {Particle, ParticleAttributes} from "./particle"
 import {ParticleContainer} from "./particleContainer"
 import {ParticleContainerFactory} from "./particleContainerFactory"
 import {handleCollision} from "./physics/collision"
-import {applyGravity} from "./physics/gravity"
 import {applyTransform} from "./physics/transform"
-import {applyForce, Force} from "./physics/force"
+import {applyForce} from "./physics/force"
 import {Point} from "./position"
 import {Probability} from "./probability"
 import {Editor, editor} from "./editor/ui"
@@ -20,7 +19,6 @@ export interface GridOptions {
   cellXCount: number
   cellYCount: number
   position: Point
-  force?: Force
   showUI?: boolean
 }
 
@@ -107,15 +105,15 @@ export class Grid {
 
 const start = (self: Grid) => {
   const {probabilitySpots, options} = self
-  const {probabilityXCount, probabilityYCount, force} = options
+  const {probabilityXCount, probabilityYCount} = options
   self.isRendering = true
 
-  let i = 0
+  let frame = 0
   const render = () => {
     console.time()
     if (self.isRendering) {
       requestAnimationFrame(render)
-      i++
+      frame++
 
       for (let x = 0; x < probabilityXCount; x++) {
         for (let y = 0; y < probabilityYCount; y++) {
@@ -124,12 +122,7 @@ const start = (self: Grid) => {
 
           while (current) {
             let {particle, cell} = current
-            applyGravity(particle)
-
-            if (force && i % force.frameIteration === 0) {
-              applyForce(particle, force)
-            }
-
+            applyForce(particle, frame)
             handleCollision(self, {list, cell}, particle)
             applyTransform(particle)
 
