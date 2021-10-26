@@ -1,5 +1,10 @@
-import {Force} from "src/grid"
 import {Particle} from "../particle"
+
+export interface Force {
+  vx?: number
+  vy?: number
+  frameIteration: number
+}
 
 export const applyForce = (particle: Particle, force: Force) => {
   if (force.vx) {

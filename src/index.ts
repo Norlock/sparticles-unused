@@ -29,7 +29,7 @@ const initGrid = () => {
       y: 100
     },
     force: {
-      vx: 1,
+      vx: -1,
       frameIteration: 1
     },
     showUI: true
@@ -51,6 +51,7 @@ const initGrid = () => {
   fill.blueNoise(10)
 
   setTimeout(() => grid.start(), 3000)
+  setTimeout(() => console.log(grid), 5000)
 }
 
 initGrid()

@@ -1,69 +1,65 @@
-import {Cell} from "src/cell"
-import {Grid} from "src/grid"
-import {ProbabilityLinkedList} from "src/list"
+import {Grid, Spot} from "src/grid"
+import {ProbabilityList} from "src/list"
 import {Particle} from "src/particle"
 import {Probability} from "src/probability"
 
-export const handleCollision = (grid: Grid, currentSpot: ProbabilityLinkedList, particle: Particle): void => {
+// TODO check also cell if new spot is still in same sell,
+// It can land on the same probability but still be a different cell.
+export const handleCollision = (grid: Grid, current: Spot, particle: Particle): void => {
   const {position} = particle
 
   const newX = position.x + position.vx
   const newY = position.y + position.vy
 
   const newXYSpot = grid.getSpot(newX, newY)
-  if (currentSpot !== newXYSpot) {
-    const newCell = grid.getCell(newX, newY)
+  if (!doesCollide(current, newXYSpot)) {
+    moveToProbability(current.list, newXYSpot, particle)
+    return
+  }
 
-    if (!doesCollide(newXYSpot, newCell)) {
-      handleNoCollision(currentSpot, newXYSpot, particle, newCell)
-      return
-    }
+  // Collision occured. check if other movements still possible
+  const newXSpot = grid.getSpot(newX, position.y)
+  if (doesCollide(current, newXSpot)) {
+    particle.position.vx = 0
+  } else {
+    particle.position.vy = 0
+    moveToProbability(current.list, newXSpot, particle)
+    return
+  }
 
-    const newXSpot = grid.getSpot(newX, position.y)
-    if (currentSpot !== newXSpot) {
-      const newCell = grid.getCell(newX, position.y)
-
-      if (doesCollide(newXSpot, newCell)) {
-        particle.position.vx = 0
-      } else {
-        particle.position.vy = 0
-        handleNoCollision(currentSpot, newXSpot, particle, newCell)
-        return
-      }
-    }
-
-    const newYSpot = grid.getSpot(position.x, newY)
-    if (currentSpot !== newYSpot) {
-      const newCell = grid.getCell(position.x, newY)
-
-      if (doesCollide(newYSpot, newCell)) {
-        particle.position.vy = 0
-      } else {
-        particle.position.vx = 0
-        handleNoCollision(currentSpot, newYSpot, particle, newCell)
-        return
-      }
-    }
+  const newYSpot = grid.getSpot(position.x, newY)
+  if (doesCollide(current, newYSpot)) {
+    particle.position.vy = 0
+  } else {
+    particle.position.vx = 0
+    moveToProbability(current.list, newYSpot, particle)
+    return
   }
 }
 
-const doesCollide = (list: ProbabilityLinkedList, cell?: Cell) => {
-  if (!cell) {
+const doesCollide = (currentSpot: Spot, newSpot: Spot) => {
+  if (!newSpot) {
     return true
+  } else if (equalSpot(currentSpot, newSpot)) {
+    return false
   }
 
-  let current = list.head
+  let compare = newSpot.list.head
 
-  while (current) {
-    if (cell === current.cell) {
+  while (compare) {
+    if (newSpot.cell === compare.cell) {
       return true
     }
-    current = current.next
+    compare = compare.next
   }
   return false
 }
 
-const handleNoCollision = (currentList: ProbabilityLinkedList, newList: ProbabilityLinkedList, particle: Particle, newCell: Cell) => {
+const moveToProbability = (currentList: ProbabilityList, newSpot: Spot, particle: Particle) => {
   currentList.remove(particle)
-  newList.add(new Probability(particle, newCell))
+  newSpot.list.add(new Probability(particle, newSpot.cell))
+}
+
+const equalSpot = (a: Spot, b: Spot) => {
+  return a.cell === b.cell && a.list === b.list
 }

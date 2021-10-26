@@ -8,16 +8,10 @@ import {ParticleContainerFactory} from "./particleContainerFactory"
 import {handleCollision} from "./physics/collision"
 import {applyGravity} from "./physics/gravity"
 import {applyTransform} from "./physics/transform"
-import {applyForce} from "./physics/force"
+import {applyForce, Force} from "./physics/force"
 import {Point} from "./position"
 import {Probability} from "./probability"
 import {Editor, editor} from "./editor/ui"
-
-export interface Force {
-  vx?: number
-  vy?: number
-  frameIteration: number
-}
 
 export interface GridOptions {
   probabilityXCount: number
@@ -30,23 +24,33 @@ export interface GridOptions {
   showUI?: boolean
 }
 
+export interface Spot {
+  cell: Cell,
+  list: ProbabilityList
+}
+
 export class Grid {
   options: GridOptions
   probabilitySpots: ProbabilityList[][]
   cells: Cell[][]
   cellWidth: number
   cellHeight: number
+  gridWidth: number
+  gridHeight: number
   container: ParticleContainer
   isRendering = false
   particleCount = 0
   editor: Editor
 
   constructor(options: GridOptions, factory: ParticleContainerFactory) {
-    const {probabilityXCount, probabilityYCount, probabilityDiameter, position} = options
+    const {probabilityXCount, probabilityYCount,
+      cellXCount, cellYCount, probabilityDiameter, position} = options
 
     this.options = options
     this.cellWidth = probabilityXCount * probabilityDiameter
     this.cellHeight = probabilityYCount * probabilityDiameter
+    this.gridWidth = cellXCount * this.cellWidth
+    this.gridHeight = cellYCount * this.cellHeight
 
     this.probabilitySpots = createProbabilityGrid(probabilityXCount, probabilityYCount)
     this.cells = createCellGrid(this)
@@ -67,18 +71,17 @@ export class Grid {
     return fillParticles(this, attributes, factory)
   }
 
-  getCell(x: number, y: number) {
-    const {cellXCount, cellYCount} = this.options
+  getSpot(x: number, y: number): Spot {
+    if (x < 0 || this.gridWidth <= x
+      || y < 0 || this.gridHeight <= y) {
+      return
+    }
+
     const xIndex = Math.floor(x / this.cellWidth)
     const yIndex = Math.floor(y / this.cellHeight)
 
-    if (0 <= xIndex && xIndex < cellXCount
-      && 0 <= yIndex && yIndex < cellYCount) {
-      return this.cells[xIndex][yIndex]
-    }
-  }
+    const cell = this.cells[xIndex][yIndex]
 
-  getSpot(x: number, y: number) {
     const {cellWidth, cellHeight, options} = this
     const {probabilityDiameter} = options
 
@@ -88,7 +91,9 @@ export class Grid {
     const probabilityX = Math.floor(xResidual / probabilityDiameter)
     const probabilityY = Math.floor(yResidual / probabilityDiameter)
 
-    return this.probabilitySpots[probabilityX][probabilityY]
+    const list = this.probabilitySpots[probabilityX][probabilityY]
+
+    return {cell, list}
   }
 
   start() {
@@ -107,24 +112,25 @@ const start = (self: Grid) => {
 
   let i = 0
   const render = () => {
+    console.time()
     if (self.isRendering) {
       requestAnimationFrame(render)
       i++
 
       for (let x = 0; x < probabilityXCount; x++) {
         for (let y = 0; y < probabilityYCount; y++) {
-          let currentSpot = probabilitySpots[x][y]
-          let current = currentSpot.head
+          let list = probabilitySpots[x][y]
+          let current = list.head
 
           while (current) {
-            let {particle} = current
+            let {particle, cell} = current
             applyGravity(particle)
 
             if (force && i % force.frameIteration === 0) {
               applyForce(particle, force)
             }
 
-            handleCollision(self, currentSpot, particle)
+            handleCollision(self, {list, cell}, particle)
             applyTransform(particle)
 
             current = current.next
@@ -134,6 +140,7 @@ const start = (self: Grid) => {
 
       self.container.render()
     }
+    console.timeEnd()
   }
 
   render()
@@ -180,7 +187,8 @@ const addParticle = (self: Grid, particle: Particle) => {
   const {probabilityDiameter} = options
   self.particleCount++
 
-  const cell = self.getCell(particle.position.x, particle.position.y)
+  const spot = self.getSpot(particle.position.x, particle.position.y)
+  const {cell} = spot
   const xResidual = particle.position.x % cellWidth
   const yResidual = particle.position.y % cellHeight
 
