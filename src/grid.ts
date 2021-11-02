@@ -7,7 +7,7 @@ import {ParticleContainer} from "./particleContainer"
 import {ParticleContainerFactory} from "./particleContainerFactory"
 import {handleCollision} from "./physics/collision"
 import {applyTransform} from "./physics/transform"
-import {applyForce} from "./physics/force"
+import {applyForces} from "./physics/force"
 import {Point} from "./position"
 import {Probability} from "./probability"
 import {Editor, editor} from "./editor/ui"
@@ -108,12 +108,10 @@ const start = (self: Grid) => {
   const {probabilityXCount, probabilityYCount} = options
   self.isRendering = true
 
-  let frame = 0
   const render = () => {
-    console.time()
+    //console.time()
     if (self.isRendering) {
       requestAnimationFrame(render)
-      frame++
 
       for (let x = 0; x < probabilityXCount; x++) {
         for (let y = 0; y < probabilityYCount; y++) {
@@ -122,7 +120,7 @@ const start = (self: Grid) => {
 
           while (current) {
             let {particle, cell} = current
-            applyForce(particle, frame)
+            applyForces(particle)
             handleCollision(self, {list, cell}, particle)
             applyTransform(particle)
 
@@ -133,7 +131,7 @@ const start = (self: Grid) => {
 
       self.container.render()
     }
-    console.timeEnd()
+    //console.timeEnd()
   }
 
   render()

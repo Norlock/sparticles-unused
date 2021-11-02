@@ -1,28 +1,37 @@
 import {Particle} from "src/particle"
 import {Force} from "../force"
 
-export const bouncingBalls = (_particle: Particle) => {
+export const bouncingBalls = (particle: Particle) => {
   const force1: Force = {
     vx: 1,
     vy: 1,
-    frameIteration: 4,
-    delay: 0
+    vxBoundry: 2,
+    vyBoundry: 2,
+    vxStart: 0,
+    vyStart: 0,
+    firstFrame: 0,
+    lastFrame: 19
   }
 
   const force2: Force = {
-    vx: 0,
-    vy: -1,
-    frameIteration: 2,
-    delay: 1
+    vx: -1,
+    vxBoundry: -2,
+    vxStart: 0,
+    vyStart: 0,
+    firstFrame: 20,
+    lastFrame: 39
   }
 
   const force3: Force = {
-    vx: -1,
-    vy: 0,
-    frameIteration: 2,
-    delay: 2
+    vy: -1,
+    vyBoundry: -2,
+    vxStart: 0,
+    vyStart: 0,
+    firstFrame: 40,
+    lastFrame: 59
   }
 
-  return [force1, force2, force3]
+  particle.frame = Math.floor(Math.random() * force3.lastFrame)
 
+  return [force1, force2, force3]
 }
