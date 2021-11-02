@@ -4,9 +4,9 @@ export interface Force {
   vx?: number
   vy?: number
   vz?: number
-  vxBoundry?: number
-  vyBoundry?: number
-  vzBoundry?: number
+  vxLimit?: number
+  vyLimit?: number
+  vzLimit?: number
   // Start can be used to avoid offset
   vxStart?: number
   vyStart?: number
@@ -48,16 +48,16 @@ export const applyForce = (particle: Particle, force: Force) => {
     const newVX = position.vx + force.vx
 
     if (0 < force.vx) {
-      if (newVX <= force.vxBoundry) {
+      if (newVX <= force.vxLimit) {
         position.vx = newVX
       } else {
-        position.vx = force.vxBoundry
+        position.vx = force.vxLimit
       }
     } else if (force.vx < 0) {
-      if (force.vxBoundry <= newVX) {
+      if (force.vxLimit <= newVX) {
         position.vx = newVX
       } else {
-        position.vx = force.vxBoundry
+        position.vx = force.vxLimit
       }
     }
   }
@@ -66,16 +66,16 @@ export const applyForce = (particle: Particle, force: Force) => {
     const newVY = position.vy + force.vy
 
     if (0 < force.vy) {
-      if (newVY <= force.vyBoundry) {
+      if (newVY <= force.vyLimit) {
         position.vy = newVY
       } else {
-        position.vy = force.vyBoundry
+        position.vy = force.vyLimit
       }
     } else if (force.vy < 0) {
-      if (force.vyBoundry <= newVY) {
+      if (force.vyLimit <= newVY) {
         position.vy = newVY
       } else {
-        position.vy = force.vyBoundry
+        position.vy = force.vyLimit
       }
     }
   }
@@ -84,16 +84,16 @@ export const applyForce = (particle: Particle, force: Force) => {
     const newVZ = position.vz + force.vz
 
     if (0 < force.vz) {
-      if (newVZ <= force.vzBoundry) {
+      if (newVZ <= force.vzLimit) {
         position.vz = newVZ
       } else {
-        position.vz = force.vzBoundry
+        position.vz = force.vzLimit
       }
     } else if (force.vz < 0) {
-      if (force.vzBoundry <= newVZ) {
+      if (force.vzLimit <= newVZ) {
         position.vz = newVZ
       } else {
-        position.vz = force.vzBoundry
+        position.vz = force.vzLimit
       }
     }
   }

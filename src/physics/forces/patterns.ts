@@ -1,12 +1,26 @@
 import {Particle} from "src/particle"
 import {Force} from "../force"
 
-export const bouncingBalls = (particle: Particle) => {
+export const fireflies = (particle: Particle) => {
+
+  particle.frame = Math.floor(Math.random() * 60)
+
+  if (Math.random() <= 0.5) {
+    return directionLeft()
+  } else {
+    return directionRight()
+  }
+}
+
+const directionLeft = () => {
+  const vxLimit = Math.random() * 2
+  const vyLimit = Math.random() * 2
+
   const force1: Force = {
     vx: 1,
     vy: 1,
-    vxBoundry: 2,
-    vyBoundry: 2,
+    vxLimit: vxLimit,
+    vyLimit: vyLimit,
     vxStart: 0,
     vyStart: 0,
     firstFrame: 0,
@@ -15,7 +29,7 @@ export const bouncingBalls = (particle: Particle) => {
 
   const force2: Force = {
     vx: -1,
-    vxBoundry: -2,
+    vxLimit: -vxLimit,
     vxStart: 0,
     vyStart: 0,
     firstFrame: 20,
@@ -24,14 +38,48 @@ export const bouncingBalls = (particle: Particle) => {
 
   const force3: Force = {
     vy: -1,
-    vyBoundry: -2,
+    vyLimit: -vyLimit,
     vxStart: 0,
     vyStart: 0,
     firstFrame: 40,
     lastFrame: 59
   }
 
-  particle.frame = Math.floor(Math.random() * force3.lastFrame)
-
   return [force1, force2, force3]
+}
+
+const directionRight = () => {
+  const vxLimit = Math.random() * 2
+  const vyLimit = Math.random() * 2
+
+  const force1: Force = {
+    vx: -1,
+    vy: -1,
+    vxLimit: -vxLimit,
+    vyLimit: -vyLimit,
+    vxStart: 0,
+    vyStart: 0,
+    firstFrame: 0,
+    lastFrame: 19
+  }
+
+  const force2: Force = {
+    vx: 1,
+    vxLimit: vxLimit,
+    vxStart: 0,
+    vyStart: 0,
+    firstFrame: 20,
+    lastFrame: 39
+  }
+
+  const force3: Force = {
+    vy: 1,
+    vyLimit: vyLimit,
+    vxStart: 0,
+    vyStart: 0,
+    firstFrame: 40,
+    lastFrame: 59
+  }
+
+  return [force3, force2, force1]
 }

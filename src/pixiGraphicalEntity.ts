@@ -50,6 +50,7 @@ const createMesh = (particle: Particle) => {
   triangle.y = position.y
   triangle.width = attributes.diameter
   triangle.height = attributes.diameter
+  console.log(shader.uniforms)
   return triangle
 }
 
