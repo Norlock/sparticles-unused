@@ -11,6 +11,7 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
   const width = cellXCount * cellWidth
   const height = cellYCount * cellHeight
 
+  console.log(grid.editor)
   const topHorizontalLeft = (count: number, applyForces: ApplyForces) => {
     for (let y = 0; y < width && 0 < count; y += distance) {
       for (let x = 0; x < height && 0 < count; x += distance) {
@@ -19,7 +20,7 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
       }
     }
 
-    grid.editor.update()
+    grid.editor?.update()
   }
 
   const topHorizontalRight = (count: number, applyForces: ApplyForces) => {
@@ -30,7 +31,7 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
       }
     }
 
-    grid.editor.update()
+    grid.editor?.update()
   }
 
   const topVerticalLeft = (count: number, applyForces: ApplyForces) => {
@@ -41,7 +42,7 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
       }
     }
 
-    grid.editor.update()
+    grid.editor?.update()
   }
 
   const topVerticalRight = (count: number, applyForces: ApplyForces) => {
@@ -52,7 +53,7 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
       }
     }
 
-    grid.editor.update()
+    grid.editor?.update()
   }
 
   const bottomHorizontalLeft = (count: number, applyForces: ApplyForces) => {
@@ -63,7 +64,7 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
       }
     }
 
-    grid.editor.update()
+    grid.editor?.update()
   }
 
   const bottomHorizontalRight = (count: number, applyForces: ApplyForces) => {
@@ -74,7 +75,7 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
       }
     }
 
-    grid.editor.update()
+    grid.editor?.update()
   }
 
   const bottomVerticalLeft = (count: number, applyForces: ApplyForces) => {
@@ -85,7 +86,7 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
       }
     }
 
-    grid.editor.update()
+    grid.editor?.update()
   }
 
   const bottomVerticalRight = (count: number, applyForces: ApplyForces) => {
@@ -96,7 +97,7 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
       }
     }
 
-    grid.editor.update()
+    grid.editor?.update()
   }
 
   // TODO improve duplicated tries
@@ -135,7 +136,7 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
       }
     }
 
-    grid.editor.update()
+    grid.editor?.update()
   }
 
   const addParticle = (position: Position, applyForces: ApplyForces) => {

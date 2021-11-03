@@ -31,3 +31,5 @@ cell. Just by filtering the probabilities of the same cell.
 - [ ] physics
   - [ ] update side movement
 - [ ] editor
+- [ ] forces for particle (certain movement patterns)
+- [ ] external forces (to create more lively effect)

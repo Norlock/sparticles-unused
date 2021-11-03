@@ -7,7 +7,7 @@ import {ParticleContainer} from "./particleContainer"
 import {ParticleContainerFactory} from "./particleContainerFactory"
 import {handleCollision} from "./physics/collision"
 import {applyTransform} from "./physics/transform"
-import {applyForces} from "./physics/force"
+import {applyForces, Force} from "./physics/force"
 import {Point} from "./position"
 import {Probability} from "./probability"
 import {Editor, editor} from "./editor/ui"
@@ -39,6 +39,7 @@ export class Grid {
   isRendering = false
   particleCount = 0
   editor: Editor
+  forces: Force[] = []
 
   constructor(options: GridOptions, factory: ParticleContainerFactory) {
     const {probabilityXCount, probabilityYCount,
@@ -54,9 +55,8 @@ export class Grid {
     this.cells = createCellGrid(this)
     this.container = factory.create(position)
 
-    this.container.drawDevGrid(options)
-
     if (this.options.showUI === true) {
+      this.container.drawDevGrid(options)
       this.editor = editor(this)
     }
   }
@@ -109,7 +109,7 @@ const start = (self: Grid) => {
   self.isRendering = true
 
   const render = () => {
-    //console.time()
+    console.time()
     if (self.isRendering) {
       requestAnimationFrame(render)
 
@@ -131,7 +131,7 @@ const start = (self: Grid) => {
 
       self.container.render()
     }
-    //console.timeEnd()
+    console.timeEnd()
   }
 
   render()

@@ -9,7 +9,8 @@ export interface ParticleAttributes {
     green: number,
     blue: number
   }
-  weight: number
+  weight: number,
+  potential?: number,  // potential will be used to calculate collision resolution.
 }
 
 export interface ParticleData {
