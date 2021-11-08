@@ -32,68 +32,67 @@ export const applyForces = (particle: Particle) => {
 }
 
 export const applyForce = (particle: Particle, force: Force) => {
-  const {position} = particle
 
   if (particle.frame === force.firstFrame) {
     if (typeof force.vxStart === 'number')
-      position.vx = force.vxStart
+      particle.vx = force.vxStart
     if (typeof force.vyStart === 'number')
-      position.vy = force.vyStart
+      particle.vy = force.vyStart
     if (typeof force.vzStart === 'number')
-      position.vz = force.vzStart
+      particle.vz = force.vzStart
     return
   }
 
   if (force.vx) {
-    const newVX = position.vx + force.vx
+    const newVX = particle.vx + force.vx
 
     if (0 < force.vx) {
       if (newVX <= force.vxLimit) {
-        position.vx = newVX
+        particle.vx = newVX
       } else {
-        position.vx = force.vxLimit
+        particle.vx = force.vxLimit
       }
     } else if (force.vx < 0) {
       if (force.vxLimit <= newVX) {
-        position.vx = newVX
+        particle.vx = newVX
       } else {
-        position.vx = force.vxLimit
+        particle.vx = force.vxLimit
       }
     }
   }
 
   if (force.vy) {
-    const newVY = position.vy + force.vy
+    const newVY = particle.vy + force.vy
 
     if (0 < force.vy) {
       if (newVY <= force.vyLimit) {
-        position.vy = newVY
+        particle.vy = newVY
       } else {
-        position.vy = force.vyLimit
+        particle.vy = force.vyLimit
       }
     } else if (force.vy < 0) {
       if (force.vyLimit <= newVY) {
-        position.vy = newVY
+        particle.vy = newVY
       } else {
-        position.vy = force.vyLimit
+        particle.vy = force.vyLimit
       }
     }
   }
 
   if (force.vz) {
-    const newVZ = position.vz + force.vz
+    const newVZ = particle.vz + force.vz
 
     if (0 < force.vz) {
       if (newVZ <= force.vzLimit) {
-        position.vz = newVZ
+        particle.vz = newVZ
       } else {
-        position.vz = force.vzLimit
+        particle.vz = force.vzLimit
       }
     } else if (force.vz < 0) {
       if (force.vzLimit <= newVZ) {
-        position.vz = newVZ
+        particle.vz = newVZ
       } else {
-        position.vz = force.vzLimit
+        particle.vz = force.vzLimit
       }
     }
   }

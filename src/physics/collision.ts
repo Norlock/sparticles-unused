@@ -6,10 +6,9 @@ import {Probability} from "src/probability"
 // TODO check also cell if new spot is still in same sell,
 // It can land on the same probability but still be a different cell.
 export const handleCollision = (grid: Grid, current: Spot, particle: Particle): void => {
-  const {position} = particle
 
-  const newX = position.x + position.vx
-  const newY = position.y + position.vy
+  const newX = particle.x + particle.vx
+  const newY = particle.y + particle.vy
 
   const newXYSpot = grid.getSpot(newX, newY)
   if (!doesCollide(current, newXYSpot)) {
@@ -18,20 +17,20 @@ export const handleCollision = (grid: Grid, current: Spot, particle: Particle): 
   }
 
   // Collision occured. check if other movements still possible
-  const newXSpot = grid.getSpot(newX, position.y)
+  const newXSpot = grid.getSpot(newX, particle.y)
   if (doesCollide(current, newXSpot)) {
-    particle.position.vx = 0
+    particle.vx = 0
   } else {
-    particle.position.vy = 0
+    particle.vy = 0
     moveToProbability(current.list, newXSpot, particle)
     return
   }
 
-  const newYSpot = grid.getSpot(position.x, newY)
+  const newYSpot = grid.getSpot(particle.x, newY)
   if (doesCollide(current, newYSpot)) {
-    particle.position.vy = 0
+    particle.vy = 0
   } else {
-    particle.position.vx = 0
+    particle.vx = 0
     moveToProbability(current.list, newYSpot, particle)
     return
   }

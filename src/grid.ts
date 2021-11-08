@@ -7,10 +7,12 @@ import {ParticleContainer} from "./particleContainer"
 import {ParticleContainerFactory} from "./particleContainerFactory"
 import {handleCollision} from "./physics/collision"
 import {applyTransform} from "./physics/transform"
-import {applyForces, Force} from "./physics/force"
+import {applyForces} from "./physics/force"
 import {Point} from "./position"
 import {Probability} from "./probability"
 import {Editor, editor} from "./editor/ui"
+import {ExternalForce} from "./physics/externalForces"
+import {LineTree} from "./physics/lineCaster"
 
 export interface GridOptions {
   probabilityXCount: number
@@ -19,7 +21,8 @@ export interface GridOptions {
   cellXCount: number
   cellYCount: number
   position: Point
-  showUI?: boolean
+  showUI: boolean
+  forces?: ExternalForce[]
 }
 
 export interface Spot {
@@ -39,17 +42,24 @@ export class Grid {
   isRendering = false
   particleCount = 0
   editor: Editor
-  forces: Force[] = []
+  forces: ExternalForce[]
+  lastFrame: number
+  frame = 0
 
   constructor(options: GridOptions, factory: ParticleContainerFactory) {
     const {probabilityXCount, probabilityYCount,
-      cellXCount, cellYCount, probabilityDiameter, position} = options
+      cellXCount, cellYCount, probabilityDiameter, position, forces} = options
 
     this.options = options
     this.cellWidth = probabilityXCount * probabilityDiameter
     this.cellHeight = probabilityYCount * probabilityDiameter
     this.gridWidth = cellXCount * this.cellWidth
     this.gridHeight = cellYCount * this.cellHeight
+    this.forces = forces ?? []
+
+    this.lastFrame = this.forces.reduce(
+      (last, current) => Math.max(last, current.lastFrame), 0
+    )
 
     this.probabilitySpots = createProbabilityGrid(probabilityXCount, probabilityYCount)
     this.cells = createCellGrid(this)
@@ -109,9 +119,10 @@ const start = (self: Grid) => {
   self.isRendering = true
 
   const render = () => {
-    console.time()
+    //console.time()
     if (self.isRendering) {
       requestAnimationFrame(render)
+      const lineTree = createTree(self)
 
       for (let x = 0; x < probabilityXCount; x++) {
         for (let y = 0; y < probabilityYCount; y++) {
@@ -123,18 +134,44 @@ const start = (self: Grid) => {
             applyForces(particle)
             handleCollision(self, {list, cell}, particle)
             applyTransform(particle)
+            // set external thing
+            lineTree?.add(particle)
 
             current = current.next
           }
+
         }
       }
+      debugger
+      //lineTree.print()
 
       self.container.render()
     }
-    console.timeEnd()
+    //console.timeEnd()
   }
 
   render()
+}
+
+const createTree = (self: Grid) => {
+  const {forces} = self
+
+  let tree: LineTree
+
+  for (let force of forces) {
+    if (force.firstFrame <= self.frame && self.frame <= force.lastFrame) {
+      tree = new LineTree(force, self.gridWidth, self.gridHeight)
+      break
+    }
+  }
+
+  if (self.frame === self.lastFrame) {
+    self.frame = 0
+  } else {
+    self.frame++
+  }
+
+  return tree
 }
 
 const createProbabilityGrid = (probabilityXCount: number, probabilityYCount: number) => {
@@ -178,17 +215,17 @@ const addParticle = (self: Grid, particle: Particle) => {
   const {probabilityDiameter} = options
   self.particleCount++
 
-  const spot = self.getSpot(particle.position.x, particle.position.y)
+  const spot = self.getSpot(particle.x, particle.y)
   const {cell} = spot
-  const xResidual = particle.position.x % cellWidth
-  const yResidual = particle.position.y % cellHeight
+  const xResidual = particle.x % cellWidth
+  const yResidual = particle.y % cellHeight
 
   const probabilityX = Math.floor(xResidual / probabilityDiameter)
   const probabilityY = Math.floor(yResidual / probabilityDiameter)
 
   // TODO dev var just for lining out particles
-  particle.position.x = cell.x + probabilityX * probabilityDiameter + (probabilityDiameter / 2)
-  particle.position.y = cell.y + probabilityY * probabilityDiameter + (probabilityDiameter / 2)
+  particle.x = cell.x + probabilityX * probabilityDiameter + (probabilityDiameter / 2)
+  particle.y = cell.y + probabilityY * probabilityDiameter + (probabilityDiameter / 2)
 
   self.probabilitySpots[probabilityX][probabilityY].add(new Probability(particle, cell))
   self.container.add(particle)

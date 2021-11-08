@@ -5,6 +5,7 @@ import {PixiParticleContainer} from './particleContainer';
 import {PixiParticleContainerFactory} from './particleContainerFactory';
 import {PixiGraphicalEntityFactory} from './pixiGraphicalEntity';
 import {fireflies} from './physics/forces/patterns';
+import {ExternalForce} from './physics/externalForces';
 
 const canvas = document.getElementById('canvas')
 
@@ -20,7 +21,7 @@ canvas.append(app.view);
 const initGrid = () => {
   const containerFactory = PixiParticleContainerFactory(app.renderer as PIXI.Renderer)
   const grid = new Grid({
-    cellXCount: 6,
+    cellXCount: 5,
     cellYCount: 5,
     probabilityXCount: 15,
     probabilityYCount: 15,
@@ -29,7 +30,8 @@ const initGrid = () => {
       x: 100,
       y: 100
     },
-    showUI: false
+    showUI: true,
+    forces: externalForces()
   }, containerFactory)
 
   const attributes: ParticleAttributes = {
@@ -45,9 +47,27 @@ const initGrid = () => {
   app.stage.addChild(grid.container as PixiParticleContainer)
 
   const fill = grid.fill(attributes, PixiGraphicalEntityFactory())
-  fill.blueNoise(8, fireflies)
+  fill.blueNoise(1, fireflies)
 
   setTimeout(() => grid.start(), 3000)
+}
+
+const externalForces = () => {
+  const force1 = new ExternalForce()
+  force1.vx = 1
+  force1.vy = 0
+  force1.type = "dynamic"
+  force1.firstFrame = 0
+  force1.lastFrame = 14 * 15
+
+  const force2 = new ExternalForce()
+  force2.vx = -1
+  force2.vy = 0
+  force2.type = "dynamic"
+  force2.firstFrame = 20 * 15
+  force2.lastFrame = 34 * 15
+
+  return [force1, force2]
 }
 
 initGrid()

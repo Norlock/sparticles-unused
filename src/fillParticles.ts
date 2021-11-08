@@ -11,7 +11,6 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
   const width = cellXCount * cellWidth
   const height = cellYCount * cellHeight
 
-  console.log(grid.editor)
   const topHorizontalLeft = (count: number, applyForces: ApplyForces) => {
     for (let y = 0; y < width && 0 < count; y += distance) {
       for (let x = 0; x < height && 0 < count; x += distance) {

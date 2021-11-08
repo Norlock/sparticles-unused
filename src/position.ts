@@ -26,7 +26,7 @@ export class Position implements Point {
 }
 
 export interface Point {
-  x: number,
+  x: number
   y: number
   z?: number
 }

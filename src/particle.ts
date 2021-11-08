@@ -20,9 +20,14 @@ export interface ParticleData {
   applyForces: ApplyForces
 }
 
-export class Particle {
+export class Particle implements Position {
   attributes: ParticleAttributes
-  position: Position
+  x: number
+  y: number
+  z?: number
+  vx: number
+  vy: number
+  vz?: number
   graphicalEntity: GraphicalEntity
   forces: Force[] = []
   frame = 0
@@ -30,7 +35,13 @@ export class Particle {
 
   constructor(data: ParticleData) {
     const {position, attributes, factory, applyForces} = data
-    this.position = position
+    this.x = position.x
+    this.y = position.y
+    this.z = position.z
+    this.vx = position.vx
+    this.vy = position.vy
+    this.vz = position.vz
+
     this.attributes = attributes
     this.graphicalEntity = factory.create(this)
 
