@@ -116,6 +116,7 @@ export class Grid {
 const start = (self: Grid) => {
   const {probabilitySpots, options} = self
   const {probabilityXCount, probabilityYCount} = options
+  let update: (particle: Particle) => void
   self.isRendering = true
 
   const render = () => {
@@ -124,27 +125,38 @@ const start = (self: Grid) => {
       requestAnimationFrame(render)
       const lineTree = createTree(self)
 
+      if (lineTree) {
+        update = (particle: Particle) => {
+          lineTree.add(particle)
+        }
+      } else {
+        update = applyTransform
+      }
+
+      // TODO use appropiate loop for frame. If external force applied from right then loop from the right.
       for (let x = 0; x < probabilityXCount; x++) {
         for (let y = 0; y < probabilityYCount; y++) {
           let list = probabilitySpots[x][y]
           let current = list.head
 
           while (current) {
-            let {particle, cell} = current
+            if (current.inQueue === true) {
+              current.inQueue = false
+              current = current.next
+              continue
+            }
+
+            const {particle, cell} = current
             applyForces(particle)
             handleCollision(self, {list, cell}, particle)
-            applyTransform(particle)
-            // set external thing
-            lineTree?.add(particle)
+            update(particle)
 
             current = current.next
           }
-
         }
       }
-      debugger
-      //lineTree.print()
 
+      // if tree exist applyTransform on tree
       self.container.render()
     }
     //console.timeEnd()
@@ -227,6 +239,6 @@ const addParticle = (self: Grid, particle: Particle) => {
   particle.x = cell.x + probabilityX * probabilityDiameter + (probabilityDiameter / 2)
   particle.y = cell.y + probabilityY * probabilityDiameter + (probabilityDiameter / 2)
 
-  self.probabilitySpots[probabilityX][probabilityY].add(new Probability(particle, cell))
+  self.probabilitySpots[probabilityX][probabilityY].add(new Probability(particle, cell, false))
   self.container.add(particle)
 }

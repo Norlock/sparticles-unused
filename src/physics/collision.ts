@@ -56,7 +56,7 @@ const doesCollide = (currentSpot: Spot, newSpot: Spot) => {
 
 const moveToProbability = (currentList: ProbabilityList, newSpot: Spot, particle: Particle) => {
   currentList.remove(particle)
-  newSpot.list.add(new Probability(particle, newSpot.cell))
+  newSpot.list.add(new Probability(particle, newSpot.cell, true))
 }
 
 const equalSpot = (a: Spot, b: Spot) => {

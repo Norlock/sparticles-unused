@@ -31,7 +31,7 @@ const initGrid = () => {
       y: 100
     },
     showUI: true,
-    forces: externalForces()
+    //forces: externalForces()
   }, containerFactory)
 
   const attributes: ParticleAttributes = {
@@ -47,7 +47,7 @@ const initGrid = () => {
   app.stage.addChild(grid.container as PixiParticleContainer)
 
   const fill = grid.fill(attributes, PixiGraphicalEntityFactory())
-  fill.blueNoise(1, fireflies)
+  fill.blueNoise(5, fireflies)
 
   setTimeout(() => grid.start(), 3000)
 }
