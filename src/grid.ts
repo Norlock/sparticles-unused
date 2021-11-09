@@ -12,7 +12,9 @@ import {Point} from "./position"
 import {Probability} from "./probability"
 import {Editor, editor} from "./editor/ui"
 import {ExternalForce} from "./physics/externalForces"
-import {LineTree} from "./physics/lineCaster"
+import {Direction, LineTree} from "./physics/lineCaster"
+
+type UpdateSpot = (list: ProbabilityList) => void
 
 export interface GridOptions {
   probabilityXCount: number
@@ -31,13 +33,18 @@ export interface Spot {
 }
 
 export class Grid {
-  options: GridOptions
   probabilitySpots: ProbabilityList[][]
   cells: Cell[][]
   cellWidth: number
   cellHeight: number
   gridWidth: number
   gridHeight: number
+  probabilityXCount: number
+  probabilityYCount: number
+  probabilityDiameter: number
+  cellXCount: number
+  cellYCount: number
+
   container: ParticleContainer
   isRendering = false
   particleCount = 0
@@ -50,12 +57,16 @@ export class Grid {
     const {probabilityXCount, probabilityYCount,
       cellXCount, cellYCount, probabilityDiameter, position, forces} = options
 
-    this.options = options
     this.cellWidth = probabilityXCount * probabilityDiameter
     this.cellHeight = probabilityYCount * probabilityDiameter
     this.gridWidth = cellXCount * this.cellWidth
     this.gridHeight = cellYCount * this.cellHeight
     this.forces = forces ?? []
+    this.probabilityXCount = probabilityXCount
+    this.probabilityYCount = probabilityYCount
+    this.probabilityDiameter = probabilityDiameter
+    this.cellXCount = cellXCount
+    this.cellYCount = cellYCount
 
     this.lastFrame = this.forces.reduce(
       (last, current) => Math.max(last, current.lastFrame), 0
@@ -65,7 +76,7 @@ export class Grid {
     this.cells = createCellGrid(this)
     this.container = factory.create(position)
 
-    if (this.options.showUI === true) {
+    if (options.showUI === true) {
       this.container.drawDevGrid(options)
       this.editor = editor(this)
     }
@@ -90,8 +101,7 @@ export class Grid {
 
     const cell = this.cells[xIndex][yIndex]
 
-    const {cellWidth, cellHeight, options} = this
-    const {probabilityDiameter} = options
+    const {cellWidth, cellHeight, probabilityDiameter} = this
 
     const xResidual = x % cellWidth
     const yResidual = y % cellHeight
@@ -114,49 +124,13 @@ export class Grid {
 }
 
 const start = (self: Grid) => {
-  const {probabilitySpots, options} = self
-  const {probabilityXCount, probabilityYCount} = options
-  let update: (particle: Particle) => void
   self.isRendering = true
 
   const render = () => {
     //console.time()
     if (self.isRendering) {
       requestAnimationFrame(render)
-      const lineTree = createTree(self)
-
-      if (lineTree) {
-        update = (particle: Particle) => {
-          lineTree.add(particle)
-        }
-      } else {
-        update = applyTransform
-      }
-
-      // TODO use appropiate loop for frame. If external force applied from right then loop from the right.
-      for (let x = 0; x < probabilityXCount; x++) {
-        for (let y = 0; y < probabilityYCount; y++) {
-          let list = probabilitySpots[x][y]
-          let current = list.head
-
-          while (current) {
-            if (current.inQueue === true) {
-              current.inQueue = false
-              current = current.next
-              continue
-            }
-
-            const {particle, cell} = current
-            applyForces(particle)
-            handleCollision(self, {list, cell}, particle)
-            update(particle)
-
-            current = current.next
-          }
-        }
-      }
-
-      // if tree exist applyTransform on tree
+      setLooper(self)
       self.container.render()
     }
     //console.timeEnd()
@@ -165,12 +139,64 @@ const start = (self: Grid) => {
   render()
 }
 
-const createTree = (self: Grid) => {
-  const {forces} = self
+const setLooper = (self: Grid) => {
+  const tree = createTree(self)
+  const update = updateCB(self, tree)
 
+  if (!tree) {
+    return horizontalTopLoopFromLeft(self, update)
+  }
+
+  switch (tree.direction) {
+    case Direction.TOP:
+      return verticalTopLoopFromLeft(self, update)
+    case Direction.LEFT:
+      return horizontalTopLoopFromLeft(self, update)
+    case Direction.RIGHT:
+      return horizontalTopLoopFromRight(self, update)
+    case Direction.BOTTOM:
+      return verticalTopLoopFromLeft(self, update)
+    default:
+      console.error("not implemented yet")
+      break;
+  }
+}
+
+const updateCB = (self: Grid, tree?: LineTree) => {
+  let finishUpdate: (particle: Particle) => void
+
+  if (tree) {
+    finishUpdate = (particle: Particle) => tree.add(particle)
+  } else {
+    finishUpdate = applyTransform
+  }
+
+  const update = (list: ProbabilityList) => {
+    let current = list.head
+
+    while (current) {
+      if (current.inQueue === true) {
+        current.inQueue = false
+        current = current.next
+        continue
+      }
+
+      const {particle, cell} = current
+      applyForces(particle)
+      handleCollision(self, {list, cell}, particle)
+      finishUpdate(particle)
+
+      current = current.next
+    }
+  }
+
+  return update
+}
+
+const createTree = (self: Grid) => {
   let tree: LineTree
 
-  for (let force of forces) {
+  for (let force of self.forces) {
     if (force.firstFrame <= self.frame && self.frame <= force.lastFrame) {
       tree = new LineTree(force, self.gridWidth, self.gridHeight)
       break
@@ -204,8 +230,7 @@ const createProbabilityGrid = (probabilityXCount: number, probabilityYCount: num
 
 const createCellGrid = (self: Grid) => {
   const cells: Cell[][] = []
-  const {cellWidth, cellHeight, options} = self
-  const {cellXCount, cellYCount} = options
+  const {cellWidth, cellHeight, cellXCount, cellYCount} = self
 
   for (let xIndex = 0; xIndex < cellXCount; xIndex++) {
     let column: Cell[] = []
@@ -223,8 +248,7 @@ const createCellGrid = (self: Grid) => {
 }
 
 const addParticle = (self: Grid, particle: Particle) => {
-  const {cellWidth, cellHeight, options} = self
-  const {probabilityDiameter} = options
+  const {cellWidth, cellHeight, probabilityDiameter} = self
   self.particleCount++
 
   const spot = self.getSpot(particle.x, particle.y)
@@ -241,4 +265,68 @@ const addParticle = (self: Grid, particle: Particle) => {
 
   self.probabilitySpots[probabilityX][probabilityY].add(new Probability(particle, cell, false))
   self.container.add(particle)
+}
+
+const verticalTopLoopFromLeft = (self: Grid, update: UpdateSpot) => {
+  for (let x = 0; x < self.probabilityXCount; x++) {
+    for (let y = 0; y < self.probabilityYCount; y++) {
+      update(self.probabilitySpots[x][y])
+    }
+  }
+}
+
+const verticalTopLoopFromRight = (self: Grid, update: UpdateSpot) => {
+  for (let x = self.probabilityYCount - 1; 0 <= x; x--) {
+    for (let y = 0; y < self.probabilityYCount; y++) {
+      update(self.probabilitySpots[x][y])
+    }
+  }
+}
+
+const verticalBottomLoopFromLeft = (self: Grid, update: UpdateSpot) => {
+  for (let x = 0; x < self.probabilityXCount; x++) {
+    for (let y = self.probabilityYCount - 1; 0 <= y; y--) {
+      update(self.probabilitySpots[x][y])
+    }
+  }
+}
+
+const verticalBottomLoopFromRight = (self: Grid, update: UpdateSpot) => {
+  for (let x = self.probabilityYCount - 1; 0 <= x; x--) {
+    for (let y = self.probabilityYCount - 1; 0 <= y; y--) {
+      update(self.probabilitySpots[x][y])
+    }
+  }
+}
+
+const horizontalTopLoopFromLeft = (self: Grid, update: UpdateSpot) => {
+  for (let y = 0; y < self.probabilityYCount; y++) {
+    for (let x = 0; x < self.probabilityXCount; x++) {
+      update(self.probabilitySpots[x][y])
+    }
+  }
+}
+
+const horizontalTopLoopFromRight = (self: Grid, update: UpdateSpot) => {
+  for (let y = self.probabilityYCount - 1; 0 <= y; y--) {
+    for (let x = 0; x < self.probabilityXCount; x++) {
+      update(self.probabilitySpots[x][y])
+    }
+  }
+}
+
+const horizontalBottomLoopFromLeft = (self: Grid, update: UpdateSpot) => {
+  for (let y = self.probabilityYCount - 1; 0 <= y; y--) {
+    for (let x = 0; x < self.probabilityXCount; x++) {
+      update(self.probabilitySpots[x][y])
+    }
+  }
+}
+
+const horizontalBottomLoopFromRight = (self: Grid, update: UpdateSpot) => {
+  for (let y = self.probabilityYCount - 1; 0 <= y; y--) {
+    for (let x = self.probabilityYCount - 1; 0 <= x; x--) {
+      update(self.probabilitySpots[x][y])
+    }
+  }
 }

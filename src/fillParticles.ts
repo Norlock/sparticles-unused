@@ -5,8 +5,7 @@ import {Particle, ParticleAttributes} from "./particle"
 import {ApplyForces} from "./physics/force"
 
 export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factory: GraphicalEntityFactory) => {
-  const {cellWidth, cellHeight} = grid
-  const {cellXCount, cellYCount, probabilityDiameter: distance} = grid.options
+  const {cellWidth, cellHeight, cellXCount, cellYCount, probabilityDiameter: distance} = grid
 
   const width = cellXCount * cellWidth
   const height = cellYCount * cellHeight

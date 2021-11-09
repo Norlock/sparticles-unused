@@ -20,7 +20,7 @@ import {ExternalForce} from "./externalForces"
 // TODO make architecture for the tree
 //
 
-enum Direction {
+export enum Direction {
   TOP,
   BOTTOM,
   LEFT,
@@ -200,10 +200,9 @@ function insertNode(tree: LineTree, current: LineNode, newNode: LineNode) {
 
 // return (new) root 
 function insertNodeRoot(tree: LineTree, newNode: LineNode) {
-  const {root} = tree
   const order = tree.order(tree.root, newNode)
 
-  if (order.first !== root) {
+  if (order.first !== tree.root) {
     tree.root = order.first
     console.log("new Root", tree.root, tree.direction)
   } else {
