@@ -39,8 +39,9 @@ export class LineTree {
   width: number
   height: number
 
-  order: (a: LineNode, b: LineNode) => Order
+  isInOrder: (a: Particle, b: Particle) => boolean
   add: (particle: Particle) => void
+  createRoot: (particle: Particle) => LineNode
 
   constructor(force: ExternalForce, width: number, height: number) {
     this.force = force
@@ -72,8 +73,7 @@ export class LineTree {
       }
     }
 
-    setOrderFunction(this)
-    setAddFunction(this)
+    setTreeFunctions(this)
   }
 
   print() {
@@ -81,184 +81,204 @@ export class LineTree {
   }
 }
 
-const setAddFunction = (self: LineTree) => {
-  self.add = (rootParticle: Particle) => {
-    self.root = new LineNode(rootParticle)
-    self.add = (particle: Particle) => insertNodeRoot(self, new LineNode(particle))
-  }
-}
-
-class LineNode {
+abstract class LineNode {
   particle: Particle
-  aboveOrLeft: LineNode
-  belowOrRight: LineNode
 
   constructor(particle: Particle) {
     this.particle = particle
   }
 
-  // Direction top, left, bottom, right don't need to look for intersects on the line 
-  // top and bottom place the most (top/botttom) centered x particle as root 
-  // left and right place the most (left/right) centered y particle as root
-  //
-  // TODO step 1 fill complete tree by the correct order
-  // step 2 don't add redundant nodes.
+  abstract add(tree: LineTree, particle: Particle): void
+  abstract setNewRoot(tree: LineTree, particle: Particle): void
 }
 
-interface Order {
-  first: LineNode
-  second: LineNode
+class HorizontalLineNode extends LineNode {
+  top: HorizontalLineNode
+  bottom: HorizontalLineNode
+
+  private addToBottom(tree: LineTree, newParticle: Particle) {
+    if (this.bottom) {
+      if (tree.isInOrder(newParticle, this.bottom.particle)) {
+        const insertNode = new HorizontalLineNode(newParticle)
+        if (newParticle.y < this.particle.y) {
+          insertNode.bottom = this.bottom
+        } else {
+          insertNode.top = this.bottom
+        }
+
+        this.bottom = insertNode
+      } else {
+        this.bottom.add(tree, newParticle)
+      }
+    } else {
+      this.bottom = new HorizontalLineNode(newParticle)
+    }
+  }
+
+  private addToTop(tree: LineTree, newParticle: Particle) {
+    if (this.top) {
+      if (tree.isInOrder(newParticle, this.top.particle)) {
+        const insertNode = new HorizontalLineNode(newParticle)
+        if (this.particle.y < newParticle.y) {
+          insertNode.top = this.top
+        } else {
+          insertNode.bottom = this.top
+        }
+
+        this.top = insertNode
+      } else {
+        this.top.add(tree, newParticle)
+      }
+    } else {
+      this.top = new HorizontalLineNode(newParticle)
+    }
+  }
+
+  add(tree: LineTree, newParticle: Particle): void {
+    if (this.particle.y < newParticle.y) {
+      this.addToBottom(tree, newParticle)
+    } else {
+      this.addToTop(tree, newParticle)
+    }
+  }
+
+  setNewRoot(tree: LineTree, newParticle: Particle): void {
+    const newRoot = new HorizontalLineNode(newParticle)
+    if (this.particle.y < newParticle.y) {
+      newRoot.top = this
+    } else {
+      newRoot.bottom = this
+    }
+
+    tree.root = newRoot
+  }
 }
 
-function setOrderFunction(tree: LineTree) {
+class VerticalLineNode extends LineNode {
+  left: VerticalLineNode
+  right: VerticalLineNode
+
+  add(tree: LineTree, particle: Particle): void {
+    throw new Error("Method not implemented.")
+  }
+
+  setNewRoot(tree: LineTree, particle: Particle): void {
+    throw new Error("Method not implemented.")
+  }
+}
+
+function setTreeFunctions(tree: LineTree) {
   const {direction} = tree
 
+  const createRootHorizontal = (particle: Particle) => {
+    return new HorizontalLineNode(particle)
+  }
+
+  const createRootVertical = (particle: Particle) => {
+    return new VerticalLineNode(particle)
+  }
+
   if (direction === Direction.LEFT) {
-    tree.order = (a: LineNode, b: LineNode) => {
-      if (a.particle.x <= b.particle.x) {
-        return {first: a, second: b}
-      } else {
-        return {first: b, second: a}
-      }
+    tree.isInOrder = (a: Particle, b: Particle) => {
+      return a.x <= b.x
     }
+    tree.createRoot = createRootHorizontal
   } else if (direction === Direction.RIGHT) {
-    tree.order = (a: LineNode, b: LineNode) => {
-      if (a.particle.x >= b.particle.x) {
-        return {first: a, second: b}
-      } else {
-        return {first: b, second: a}
-      }
+    tree.isInOrder = (a: Particle, b: Particle) => {
+      return a.x >= b.x
     }
+    tree.createRoot = createRootHorizontal
   } else if (direction === Direction.TOP) {
-    tree.order = (a: LineNode, b: LineNode) => {
-      if (a.particle.y <= b.particle.y) {
-        return {first: a, second: b}
-      } else {
-        return {first: b, second: a}
-      }
+    tree.isInOrder = (a: Particle, b: Particle) => {
+      return a.y <= b.y
     }
   } else if (direction === Direction.BOTTOM) {
-    tree.order = (a: LineNode, b: LineNode) => {
-      if (a.particle.y >= b.particle.y) {
-        return {first: a, second: b}
-      } else {
-        return {first: b, second: a}
-      }
+    tree.isInOrder = (a: Particle, b: Particle) => {
+      return a.y >= b.y
     }
+    tree.createRoot = createRootVertical
   } else if (direction === Direction.TOP_LEFT) {
-    tree.order = (a: LineNode, b: LineNode) => {
-      const aCSide = Math.sqrt(Math.pow(a.particle.x, 2) + Math.pow(a.particle.y, 2))
-      const bCSide = Math.sqrt(Math.pow(b.particle.x, 2) + Math.pow(b.particle.y, 2))
-      if (aCSide <= bCSide) {
-        return {first: a, second: b}
-      } else {
-        return {first: b, second: a}
-      }
+    tree.isInOrder = (a: Particle, b: Particle) => {
+      const aCSide = Math.sqrt(Math.pow(a.x, 2) + Math.pow(a.y, 2))
+      const bCSide = Math.sqrt(Math.pow(b.x, 2) + Math.pow(b.y, 2))
+      return aCSide <= bCSide
     }
+    tree.createRoot = createRootVertical
   } else if (direction === Direction.TOP_RIGHT) {
-    tree.order = (a: LineNode, b: LineNode) => {
-      const aCSide = Math.sqrt(Math.pow(tree.width - a.particle.x, 2) + Math.pow(a.particle.y, 2))
-      const bCSide = Math.sqrt(Math.pow(tree.width - b.particle.x, 2) + Math.pow(b.particle.y, 2))
-      if (aCSide <= bCSide) {
-        return {first: a, second: b}
-      } else {
-        return {first: b, second: a}
-      }
+    tree.isInOrder = (a: Particle, b: Particle) => {
+      const aCSide = Math.sqrt(Math.pow(tree.width - a.x, 2) + Math.pow(a.y, 2))
+      const bCSide = Math.sqrt(Math.pow(tree.width - b.x, 2) + Math.pow(b.y, 2))
+      return aCSide <= bCSide
     }
+    tree.createRoot = createRootVertical
   } else if (direction === Direction.BOTTOM_LEFT) {
-    tree.order = (a: LineNode, b: LineNode) => {
-      const aCSide = Math.sqrt(Math.pow(a.particle.x, 2) + Math.pow(tree.height - a.particle.y, 2))
-      const bCSide = Math.sqrt(Math.pow(b.particle.x, 2) + Math.pow(tree.height - b.particle.y, 2))
-      if (aCSide <= bCSide) {
-        return {first: a, second: b}
-      } else {
-        return {first: b, second: a}
-      }
+    tree.isInOrder = (a: Particle, b: Particle) => {
+      const aCSide = Math.sqrt(Math.pow(a.x, 2) + Math.pow(tree.height - a.y, 2))
+      const bCSide = Math.sqrt(Math.pow(b.x, 2) + Math.pow(tree.height - b.y, 2))
+      return aCSide <= bCSide
     }
+    tree.createRoot = createRootVertical
   } else if (direction === Direction.BOTTOM_RIGHT) {
-    tree.order = (a: LineNode, b: LineNode) => {
-      const aCSide = Math.sqrt(Math.pow(tree.width - a.particle.x, 2) + Math.pow(tree.height - a.particle.y, 2))
-      const bCSide = Math.sqrt(Math.pow(tree.width - b.particle.x, 2) + Math.pow(tree.height - b.particle.y, 2))
-      if (aCSide <= bCSide) {
-        return {first: a, second: b}
-      } else {
-        return {first: b, second: a}
-      }
+    tree.isInOrder = (a: Particle, b: Particle) => {
+      const aCSide = Math.sqrt(Math.pow(tree.width - a.x, 2) + Math.pow(tree.height - a.y, 2))
+      const bCSide = Math.sqrt(Math.pow(tree.width - b.x, 2) + Math.pow(tree.height - b.y, 2))
+      return aCSide <= bCSide
     }
+    tree.createRoot = createRootVertical
   }
 
-  // TODO set the correct order function to the class
+  tree.add = (particle: Particle) => insertNodeRoot(tree, particle)
 }
 
-function insertNode(tree: LineTree, current: LineNode, newNode: LineNode) {
-  //if (tree.direction === Direction.LEFT) {
-  //console.log("left", tree.order(current, newNode))
-  //} else {
-  //console.log("right", tree.order(current, newNode))
-  //}
-}
-
-// return (new) root 
-function insertNodeRoot(tree: LineTree, newNode: LineNode) {
-  const order = tree.order(tree.root, newNode)
-
-  if (order.first !== tree.root) {
-    tree.root = order.first
-    console.log("new Root", tree.root, tree.direction)
+function insertNodeRoot(tree: LineTree, particle: Particle) {
+  if (!tree.root) {
+    tree.root = tree.createRoot(particle)
+  } else if (tree.isInOrder(particle, tree.root.particle)) {
+    tree.root.setNewRoot(tree, particle)
   } else {
-    insertNode(tree, order.second, newNode)
+    tree.root.add(tree, particle)
   }
+  console.log(tree)
 }
 
-function handleLeftDirection(self: LineNode, newNode: LineNode) {
-  const isInner = newNode.particle.y <= self.particle.y
+//function handleLeftDirection(self: LineNode, newNode: LineNode) {
+//const isInner = newNode.particle.y <= self.particle.y
 
-  if (newNode.particle.x < self.particle.x) {
-    // insert new node 
-    if (newNode.particle.y < self.particle.y) {
-      newNode.belowOrRight = self
-      if (newNode.particle.y < self.aboveOrLeft?.particle.y) {
-        newNode.aboveOrLeft = self.aboveOrLeft
-        self.aboveOrLeft = undefined
-      }
-    } else {
-      newNode.aboveOrLeft = self
-      if (self.belowOrRight?.particle.y < newNode.particle.y) {
-        newNode.belowOrRight = self.belowOrRight
-        self.belowOrRight = undefined
-      }
-    }
+//if (newNode.particle.x < self.particle.x) {
+//// insert new node 
+//if (newNode.particle.y < self.particle.y) {
+//newNode.belowOrRight = self
+//if (newNode.particle.y < self.aboveOrLeft?.particle.y) {
+//newNode.aboveOrLeft = self.aboveOrLeft
+//self.aboveOrLeft = undefined
+//}
+//} else {
+//newNode.aboveOrLeft = self
+//if (self.belowOrRight?.particle.y < newNode.particle.y) {
+//newNode.belowOrRight = self.belowOrRight
+//self.belowOrRight = undefined
+//}
+//}
 
-    return newNode
-  }
+//return newNode
+//}
 
-  if (newNode.particle.y < self.particle.y) {
-    if (self.aboveOrLeft) {
-      self.aboveOrLeft = handleLeftDirection(self.aboveOrLeft, newNode)
-    } else {
-      self.aboveOrLeft = newNode
-    }
-  } else {
-    if (self.belowOrRight) {
-      self.belowOrRight = handleLeftDirection(self.belowOrRight, newNode)
-    } else {
-      self.belowOrRight = newNode
-      // balance?
-    }
-  }
-  return self
-}
-
-function handleTopDirection(parent: LineNode | LineTree, particle: Particle) {
-
-  if (particle.y < this.particle.y) {
-    if (parent instanceof LineTree) {
-      const newRoot = new LineNode(particle)
-    }
-    //parent.particle
-  }
-}
-
+//if (newNode.particle.y < self.particle.y) {
+//if (self.aboveOrLeft) {
+//self.aboveOrLeft = handleLeftDirection(self.aboveOrLeft, newNode)
+//} else {
+//self.aboveOrLeft = newNode
+//}
+//} else {
+//if (self.belowOrRight) {
+//self.belowOrRight = handleLeftDirection(self.belowOrRight, newNode)
+//} else {
+//self.belowOrRight = newNode
+//// balance?
+//}
+//}
+//return self
+//}
 
 function doesIntersect(node: LineNode, particle: Particle) {
   // TODO if particle inside lines return true

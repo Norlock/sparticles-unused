@@ -7,14 +7,12 @@ export interface CellSelector {
 }
 
 export const cellSelector = (grid: Grid): CellSelector => {
-  const {cellXCount, cellYCount} = grid.options
-
   const getCell = (x: number, y: number) => {
     const xIndex = Math.floor(x / grid.cellWidth)
     const yIndex = Math.floor(y / grid.cellHeight)
 
-    if (0 <= xIndex && xIndex < cellXCount
-      && 0 <= yIndex && yIndex < cellYCount) {
+    if (0 <= xIndex && xIndex < grid.cellXCount
+      && 0 <= yIndex && yIndex < grid.cellYCount) {
       return grid.cells[xIndex][yIndex]
     }
   }

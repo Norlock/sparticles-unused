@@ -12,8 +12,7 @@ export const handleCollision = (grid: Grid, current: Spot, particle: Particle): 
 
   const newXYSpot = grid.getSpot(newX, newY)
   if (!doesCollide(current, newXYSpot)) {
-    moveToProbability(current.list, newXYSpot, particle)
-    return
+    return moveToProbability(current.list, newXYSpot, particle)
   }
 
   // Collision occured. check if other movements still possible
@@ -22,8 +21,7 @@ export const handleCollision = (grid: Grid, current: Spot, particle: Particle): 
     particle.vx = 0
   } else {
     particle.vy = 0
-    moveToProbability(current.list, newXSpot, particle)
-    return
+    return moveToProbability(current.list, newXSpot, particle)
   }
 
   const newYSpot = grid.getSpot(particle.x, newY)
@@ -31,8 +29,7 @@ export const handleCollision = (grid: Grid, current: Spot, particle: Particle): 
     particle.vy = 0
   } else {
     particle.vx = 0
-    moveToProbability(current.list, newYSpot, particle)
-    return
+    return moveToProbability(current.list, newYSpot, particle)
   }
 }
 

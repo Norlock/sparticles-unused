@@ -31,7 +31,7 @@ const initGrid = () => {
       y: 100
     },
     showUI: true,
-    //forces: externalForces()
+    forces: createForces()
   }, containerFactory)
 
   const attributes: ParticleAttributes = {
@@ -52,7 +52,7 @@ const initGrid = () => {
   setTimeout(() => grid.start(), 3000)
 }
 
-const externalForces = () => {
+const createForces = () => {
   const force1 = new ExternalForce()
   force1.vx = 1
   force1.vy = 0

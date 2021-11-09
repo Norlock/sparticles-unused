@@ -155,7 +155,7 @@ const setLooper = (self: Grid) => {
     case Direction.RIGHT:
       return horizontalTopLoopFromRight(self, update)
     case Direction.BOTTOM:
-      return verticalTopLoopFromLeft(self, update)
+      return verticalBottomLoopFromRight(self, update)
     default:
       console.error("not implemented yet")
       break;
