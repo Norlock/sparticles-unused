@@ -21,8 +21,8 @@ canvas.append(app.view);
 const initGrid = () => {
   const containerFactory = PixiParticleContainerFactory(app.renderer as PIXI.Renderer)
   const grid = new Grid({
-    cellXCount: 2,
-    cellYCount: 1,
+    cellXCount: 5,
+    cellYCount: 5,
     probabilityXCount: 15,
     probabilityYCount: 15,
     probabilityDiameter: 10,
@@ -31,7 +31,7 @@ const initGrid = () => {
       y: 100
     },
     showUI: true,
-    forces: createForces()
+    //forces: createForces()
   }, containerFactory)
 
   const attributes: ParticleAttributes = {
@@ -47,7 +47,7 @@ const initGrid = () => {
   app.stage.addChild(grid.container as PixiParticleContainer)
 
   const fill = grid.fill(attributes, PixiGraphicalEntityFactory())
-  fill.blueNoise(5, fireflies)
+  fill.blueNoise(10, fireflies)
 
   setTimeout(() => grid.start(), 3000)
 }

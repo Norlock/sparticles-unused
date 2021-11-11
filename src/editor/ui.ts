@@ -12,6 +12,7 @@ export const editor = (grid: Grid) => {
   addIntro(container)
   let update = addParticleCount(grid, container)
   addDevGridToggle(grid, container)
+  addLoopTimer(container)
 
   return update
 }
@@ -51,7 +52,7 @@ const addParticleCount = (grid: Grid, container: HTMLDivElement) => {
 
 const addDevGridToggle = (grid: Grid, container: HTMLDivElement) => {
   const div = document.createElement("div")
-  div.id = "sparToggleDevGrid"
+  div.id = "spar-dev-grid"
 
   const label = document.createElement("label") as HTMLLabelElement
   label.htmlFor = "spar-dev-grid-toggle"
@@ -74,4 +75,18 @@ const addDevGridToggle = (grid: Grid, container: HTMLDivElement) => {
   label.append(input)
   div.append(label)
   container.append(div)
+}
+
+const loopTimer = document.createElement("span")
+
+const addLoopTimer = (container: HTMLDivElement) => {
+  const div = document.createElement("div")
+  div.id = "loop-timer"
+  div.innerText = "Loop time: "
+  div.append(loopTimer)
+  container.append(div)
+}
+
+export const updateLoopTimer = (time: number) => {
+  loopTimer.innerText = time.toFixed(4)
 }
