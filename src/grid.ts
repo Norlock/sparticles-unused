@@ -127,13 +127,13 @@ const start = (self: Grid) => {
   self.isRendering = true
 
   const render = () => {
-    //console.time()
+    console.time()
     if (self.isRendering) {
       requestAnimationFrame(render)
       setLooper(self)
       self.container.render()
     }
-    //console.timeEnd()
+    console.timeEnd()
   }
 
   render()
@@ -147,9 +147,13 @@ const setLooper = (self: Grid) => {
     return horizontalTopLoopFromLeft(self, update)
   }
 
+  //  TODO 1st iteration fill tree
+  //  then traverse tree + update
   switch (tree.direction) {
     case Direction.TOP:
-      return verticalTopLoopFromLeft(self, update)
+      verticalTopLoopFromLeft(self, update)
+      console.log(tree.root)
+      debugger
     case Direction.LEFT:
       return horizontalTopLoopFromLeft(self, update)
     case Direction.RIGHT:

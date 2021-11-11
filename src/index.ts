@@ -21,8 +21,8 @@ canvas.append(app.view);
 const initGrid = () => {
   const containerFactory = PixiParticleContainerFactory(app.renderer as PIXI.Renderer)
   const grid = new Grid({
-    cellXCount: 5,
-    cellYCount: 5,
+    cellXCount: 2,
+    cellYCount: 1,
     probabilityXCount: 15,
     probabilityYCount: 15,
     probabilityDiameter: 10,
@@ -54,8 +54,8 @@ const initGrid = () => {
 
 const createForces = () => {
   const force1 = new ExternalForce()
-  force1.vx = 1
-  force1.vy = 0
+  force1.vx = 0
+  force1.vy = 1
   force1.type = "dynamic"
   force1.firstFrame = 0
   force1.lastFrame = 14 * 15

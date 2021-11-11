@@ -88,8 +88,8 @@ abstract class LineNode {
     this.particle = particle
   }
 
-  abstract add(tree: LineTree, particle: Particle): void
-  abstract setNewRoot(tree: LineTree, particle: Particle): void
+  abstract add(tree: LineTree, newParticle: Particle): void
+  abstract setNewRoot(tree: LineTree, newParticle: Particle): void
 }
 
 class HorizontalLineNode extends LineNode {
@@ -158,12 +158,54 @@ class VerticalLineNode extends LineNode {
   left: VerticalLineNode
   right: VerticalLineNode
 
-  add(tree: LineTree, particle: Particle): void {
-    throw new Error("Method not implemented.")
+  connect(insertNode: VerticalLineNode, after: VerticalLineNode) {
+    if (after.particle.x < insertNode.particle.x) {
+      insertNode.left = after
+    } else {
+      insertNode.right = after
+    }
   }
 
-  setNewRoot(tree: LineTree, particle: Particle): void {
-    throw new Error("Method not implemented.")
+  private addToLeft(tree: LineTree, newParticle: Particle) {
+    if (this.left) {
+      if (tree.isInOrder(newParticle, this.left.particle)) {
+        const insertNode = new VerticalLineNode(newParticle)
+        this.connect(insertNode, this.left)
+        this.left = insertNode
+      } else {
+        this.left.add(tree, newParticle)
+      }
+    } else {
+      this.left = new VerticalLineNode(newParticle)
+    }
+  }
+
+  private addToRight(tree: LineTree, newParticle: Particle) {
+    if (this.right) {
+      if (tree.isInOrder(newParticle, this.right.particle)) {
+        const insertNode = new VerticalLineNode(newParticle)
+        this.connect(insertNode, this.right)
+        this.right = insertNode
+      } else {
+        this.left.add(tree, newParticle)
+      }
+    } else {
+      this.left = new VerticalLineNode(newParticle)
+    }
+  }
+
+  add(tree: LineTree, newParticle: Particle): void {
+    if (this.particle.x < newParticle.x) {
+      this.addToLeft(tree, newParticle)
+    } else {
+      this.addToRight(tree, newParticle)
+    }
+  }
+
+  setNewRoot(tree: LineTree, newParticle: Particle): void {
+    const newRoot = new VerticalLineNode(newParticle)
+    this.connect(newRoot, this)
+    tree.root = newRoot
   }
 }
 
@@ -192,6 +234,7 @@ function setTreeFunctions(tree: LineTree) {
     tree.isInOrder = (a: Particle, b: Particle) => {
       return a.y <= b.y
     }
+    tree.createRoot = createRootVertical
   } else if (direction === Direction.BOTTOM) {
     tree.isInOrder = (a: Particle, b: Particle) => {
       return a.y >= b.y
@@ -238,47 +281,7 @@ function insertNodeRoot(tree: LineTree, particle: Particle) {
   } else {
     tree.root.add(tree, particle)
   }
-  console.log(tree)
 }
-
-//function handleLeftDirection(self: LineNode, newNode: LineNode) {
-//const isInner = newNode.particle.y <= self.particle.y
-
-//if (newNode.particle.x < self.particle.x) {
-//// insert new node 
-//if (newNode.particle.y < self.particle.y) {
-//newNode.belowOrRight = self
-//if (newNode.particle.y < self.aboveOrLeft?.particle.y) {
-//newNode.aboveOrLeft = self.aboveOrLeft
-//self.aboveOrLeft = undefined
-//}
-//} else {
-//newNode.aboveOrLeft = self
-//if (self.belowOrRight?.particle.y < newNode.particle.y) {
-//newNode.belowOrRight = self.belowOrRight
-//self.belowOrRight = undefined
-//}
-//}
-
-//return newNode
-//}
-
-//if (newNode.particle.y < self.particle.y) {
-//if (self.aboveOrLeft) {
-//self.aboveOrLeft = handleLeftDirection(self.aboveOrLeft, newNode)
-//} else {
-//self.aboveOrLeft = newNode
-//}
-//} else {
-//if (self.belowOrRight) {
-//self.belowOrRight = handleLeftDirection(self.belowOrRight, newNode)
-//} else {
-//self.belowOrRight = newNode
-//// balance?
-//}
-//}
-//return self
-//}
 
 function doesIntersect(node: LineNode, particle: Particle) {
   // TODO if particle inside lines return true

@@ -33,3 +33,4 @@ cell. Just by filtering the probabilities of the same cell.
 - [ ] editor
 - [ ] forces for particle (certain movement patterns)
 - [ ] external forces (to create more lively effect)
+- [ ] Convert 2d array to 1d
