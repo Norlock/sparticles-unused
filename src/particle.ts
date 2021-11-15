@@ -56,7 +56,8 @@ export class Particle implements Position {
 
     this.graphicalEntity = factory.create(this)
 
-    this.forces = applyForces(this)
+    if (applyForces)
+      this.forces = applyForces(this)
 
     this.lastFrame = this.forces.reduce(
       (last, current) => Math.max(last, current.lastFrame), 0

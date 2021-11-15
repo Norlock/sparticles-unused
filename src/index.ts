@@ -23,15 +23,15 @@ const initGrid = () => {
   const grid = new Grid({
     cellXCount: 5,
     cellYCount: 5,
-    probabilityXCount: 15,
-    probabilityYCount: 15,
+    possibilityXCount: 15,
+    possibilityYCount: 15,
     probabilityDiameter: 10,
     position: {
       x: 100,
       y: 100
     },
     showUI: true,
-    //forces: createForces()
+    forces: createForces()
   }, containerFactory)
 
   const attributes: ParticleAttributes = {
@@ -48,14 +48,15 @@ const initGrid = () => {
 
   const fill = grid.fill(attributes, PixiGraphicalEntityFactory())
   fill.blueNoise(10, fireflies)
+  //fill.blueNoise(10)
 
   setTimeout(() => grid.start(), 3000)
 }
 
 const createForces = () => {
   const force1 = new ExternalForce()
-  force1.vx = 0
-  force1.vy = 1
+  force1.vx = 1
+  force1.vy = 0
   force1.type = "dynamic"
   force1.firstFrame = 0
   force1.lastFrame = 14 * 15
@@ -67,7 +68,7 @@ const createForces = () => {
   force2.firstFrame = 20 * 15
   force2.lastFrame = 34 * 15
 
-  return [force1, force2]
+  return [force1]
 }
 
 initGrid()

@@ -1,10 +1,10 @@
 import {Particle} from "./particle";
-import {Probability} from "./probability";
+import {Possibility} from "./possibility";
 
-export class ProbabilityList {
-  head: Probability;
+export class PossibilityList {
+  head: Possibility;
 
-  add(probability: Probability): void {
+  add(probability: Possibility): void {
     probability.next = this.head
     this.head = probability
   }
@@ -15,7 +15,7 @@ export class ProbabilityList {
       return
     }
 
-    const removeRecursively = (current: Probability) => {
+    const removeRecursively = (current: Possibility) => {
       if (current.next.particle === particle) {
         current.next = current.next?.next
       } else if (current.next) {

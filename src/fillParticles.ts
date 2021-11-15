@@ -5,14 +5,14 @@ import {Particle, ParticleAttributes} from "./particle"
 import {ApplyForces} from "./physics/force"
 
 export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factory: GraphicalEntityFactory) => {
-  const {cellWidth, cellHeight, cellXCount, cellYCount, probabilityDiameter: distance} = grid
+  const {cellWidth, cellHeight, cellXCount, cellYCount, possibilityDiameter} = grid
 
   const width = cellXCount * cellWidth
   const height = cellYCount * cellHeight
 
   const topHorizontalLeft = (count: number, applyForces: ApplyForces) => {
-    for (let y = 0; y < width && 0 < count; y += distance) {
-      for (let x = 0; x < height && 0 < count; x += distance) {
+    for (let y = 0; y < width && 0 < count; y += possibilityDiameter) {
+      for (let x = 0; x < height && 0 < count; x += possibilityDiameter) {
         addParticle(new Position({x, y}), applyForces)
         count--
       }
@@ -22,8 +22,8 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
   }
 
   const topHorizontalRight = (count: number, applyForces: ApplyForces) => {
-    for (let y = 0; y < height && 0 < count; y += distance) {
-      for (let x = width - distance; 0 <= x && 0 < count; x -= distance) {
+    for (let y = 0; y < height && 0 < count; y += possibilityDiameter) {
+      for (let x = width - possibilityDiameter; 0 <= x && 0 < count; x -= possibilityDiameter) {
         addParticle(new Position({x, y}), applyForces)
         count--
       }
@@ -33,8 +33,8 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
   }
 
   const topVerticalLeft = (count: number, applyForces: ApplyForces) => {
-    for (let x = 0; x < width && 0 < count; x += distance) {
-      for (let y = 0; y < height && 0 < count; y += distance) {
+    for (let x = 0; x < width && 0 < count; x += possibilityDiameter) {
+      for (let y = 0; y < height && 0 < count; y += possibilityDiameter) {
         addParticle(new Position({x, y}), applyForces)
         count--
       }
@@ -44,8 +44,8 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
   }
 
   const topVerticalRight = (count: number, applyForces: ApplyForces) => {
-    for (let x = width - distance; 0 < x && 0 < count; x -= distance) {
-      for (let y = 0; y < height && 0 < count; y += distance) {
+    for (let x = width - possibilityDiameter; 0 < x && 0 < count; x -= possibilityDiameter) {
+      for (let y = 0; y < height && 0 < count; y += possibilityDiameter) {
         addParticle(new Position({x, y}), applyForces)
         count--
       }
@@ -55,8 +55,8 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
   }
 
   const bottomHorizontalLeft = (count: number, applyForces: ApplyForces) => {
-    for (let y = height - distance; 0 < y && 0 < count; y -= distance) {
-      for (let x = 0; x < width && 0 < count; x += distance) {
+    for (let y = height - possibilityDiameter; 0 < y && 0 < count; y -= possibilityDiameter) {
+      for (let x = 0; x < width && 0 < count; x += possibilityDiameter) {
         addParticle(new Position({x, y}), applyForces)
         count--
       }
@@ -66,8 +66,8 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
   }
 
   const bottomHorizontalRight = (count: number, applyForces: ApplyForces) => {
-    for (let y = height - distance; 0 <= y && 0 < count; y -= distance) {
-      for (let x = width - distance; 0 <= x && 0 < count; x -= distance) {
+    for (let y = height - possibilityDiameter; 0 <= y && 0 < count; y -= possibilityDiameter) {
+      for (let x = width - possibilityDiameter; 0 <= x && 0 < count; x -= possibilityDiameter) {
         addParticle(new Position({x, y}), applyForces)
         count--
       }
@@ -77,8 +77,8 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
   }
 
   const bottomVerticalLeft = (count: number, applyForces: ApplyForces) => {
-    for (let x = 0; x < width && 0 < count; x += distance) {
-      for (let y = height - distance; 0 <= y && 0 < count; y -= distance) {
+    for (let x = 0; x < width && 0 < count; x += possibilityDiameter) {
+      for (let y = height - possibilityDiameter; 0 <= y && 0 < count; y -= possibilityDiameter) {
         addParticle(new Position({x, y}), applyForces)
         count--
       }
@@ -88,8 +88,8 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
   }
 
   const bottomVerticalRight = (count: number, applyForces: ApplyForces) => {
-    for (let x = width - distance; 0 < x && 0 < count; x -= distance) {
-      for (let y = height - distance; 0 <= y && 0 < count; y -= distance) {
+    for (let x = width - possibilityDiameter; 0 < x && 0 < count; x -= possibilityDiameter) {
+      for (let y = height - possibilityDiameter; 0 <= y && 0 < count; y -= possibilityDiameter) {
         addParticle(new Position({x, y}), applyForces)
         count--
       }
@@ -99,7 +99,7 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
   }
 
   // TODO improve duplicated tries
-  const blueNoise = (particlePerCell: number, applyForces: ApplyForces) => {
+  const blueNoise = (particlePerCell: number, applyForces?: ApplyForces) => {
     const fillCell = (cellX: number, cellY: number) => {
 
       const fill = (remainder: number) => {
@@ -137,7 +137,7 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
     grid.editor?.update()
   }
 
-  const addParticle = (position: Position, applyForces: ApplyForces) => {
+  const addParticle = (position: Position, applyForces?: ApplyForces) => {
     grid.addParticle(new Particle({
       position,
       attributes,

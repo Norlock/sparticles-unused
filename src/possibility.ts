@@ -1,10 +1,10 @@
 import {Cell} from "./cell"
 import {Particle} from "./particle"
 
-export class Probability {
+export class Possibility {
   particle: Particle
   cell: Cell
-  next?: Probability
+  next?: Possibility
   inQueue: boolean
 
   constructor(particle: Particle, cell: Cell, inQueue: boolean) {

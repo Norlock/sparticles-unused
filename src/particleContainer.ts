@@ -39,7 +39,7 @@ export class PixiParticleContainer extends PIXI.Container implements ParticleCon
   }
 
   drawDevGrid(options: GridOptions) {
-    const {cellXCount, cellYCount, probabilityXCount, probabilityYCount, probabilityDiameter} = options
+    const {cellXCount, cellYCount, possibilityXCount: probabilityXCount, possibilityYCount: probabilityYCount, probabilityDiameter} = options
     const xCount = cellXCount * probabilityXCount
     const yCount = cellYCount * probabilityYCount
 
