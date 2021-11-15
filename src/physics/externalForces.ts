@@ -3,7 +3,7 @@
 import {Grid} from "src/grid";
 import {Particle} from "src/particle";
 import {handleCollision} from "./collision";
-import {applyForces} from "./force";
+import {applyAllForces, applyInternalForces} from "./force";
 import {Direction} from "./lineCaster";
 import {applyTransform} from "./transform";
 
@@ -18,17 +18,11 @@ export class BaseForce {
 
 // TODO in future you can apply external force on partial space inside the grid
 export class ExternalForce extends BaseForce {
-  //x: number;
-  //y: number;
-  //z?: number;
-  //width: number;
-  //height: number;
-
-  // dispersion if set will start from a point and disperse in percentage over length
-
   firstFrame: number;
   lastFrame: number;
   type: ForceType
+
+  applyForce: (particle: Particle) => void
 }
 
 export const applyExternalForce = (grid: Grid, force: ExternalForce) => {
@@ -38,7 +32,9 @@ export const applyExternalForce = (grid: Grid, force: ExternalForce) => {
     } else if (force.vy < 0) {
       return Direction.BOTTOM_LEFT
     } else {
-      return prepareForceFromLeft(grid, force)
+      force.applyForce = (particle) => applyParticleLeftForce(force, particle)
+      prepareForceFromLeft(grid, force)
+      return
     }
   } else if (force.vx < 0) {
     if (0 < force.vy) {
@@ -55,7 +51,18 @@ export const applyExternalForce = (grid: Grid, force: ExternalForce) => {
       return Direction.BOTTOM
     }
   }
+}
 
+const applyParticleLeftForce = (self: ExternalForce, particle: Particle) => {
+  if (particle.vx < self.vx) {
+    particle.vx = Math.min(particle.vx + self.vx, self.vx)
+  }
+}
+
+const applyParticleRightForce = (self: ExternalForce, particle: Particle) => {
+  if (self.vx < particle.vx) {
+    particle.vx = Math.max(particle.vx + self.vx, self.vx)
+  }
 }
 
 interface ParticleRow {
@@ -72,6 +79,12 @@ const prepareForceFromLeft = (grid: Grid, force: ExternalForce) => {
     let current = spot.head
 
     while (current) {
+      if (current.inQueue === true) {
+        current.inQueue = false
+        current = current.next
+        continue
+      }
+
       const match = rows.find(x => x.y === current.cell.y)
 
       if (match) {
@@ -135,10 +148,11 @@ const applyForceFromLeft = (grid: Grid, force: ExternalForce, row: ParticleRow) 
         yStart: particle.y,
         yEnd: particle.y + particle.diameter
       })
-      particle.vx = Math.min(particle.vx + force.vx, force.vx)
+      applyAllForces(particle, force)
+    } else {
+      applyInternalForces(particle)
     }
 
-    applyForces(particle)
     handleCollision(grid, grid.getSpot(particle.x, particle.y), particle)
     applyTransform(particle)
 

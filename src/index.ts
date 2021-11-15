@@ -48,14 +48,13 @@ const initGrid = () => {
 
   const fill = grid.fill(attributes, PixiGraphicalEntityFactory())
   fill.blueNoise(10, fireflies)
-  //fill.blueNoise(10)
 
   setTimeout(() => grid.start(), 3000)
 }
 
 const createForces = () => {
   const force1 = new ExternalForce()
-  force1.vx = 1
+  force1.vx = 0.5
   force1.vy = 0
   force1.type = "dynamic"
   force1.firstFrame = 0

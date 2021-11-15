@@ -13,8 +13,8 @@ export const fireflies = (particle: Particle) => {
 }
 
 const directionLeft = () => {
-  const vxLimit = Math.random() * 3
-  const vyLimit = Math.random() * 3
+  const vxLimit = Math.random() * 2
+  const vyLimit = Math.random() * 2
 
   const force1: Force = {
     vx: 1,
@@ -49,8 +49,8 @@ const directionLeft = () => {
 }
 
 const directionRight = () => {
-  const vxLimit = Math.random() * 1.5
-  const vyLimit = Math.random() * 1.5
+  const vxLimit = Math.random() * 2
+  const vyLimit = Math.random() * 2
 
   const force1: Force = {
     vx: -1,

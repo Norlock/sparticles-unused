@@ -7,7 +7,7 @@ import {ParticleContainer} from "./particleContainer"
 import {ParticleContainerFactory} from "./particleContainerFactory"
 import {handleCollision} from "./physics/collision"
 import {applyTransform} from "./physics/transform"
-import {applyForces} from "./physics/force"
+import {applyInternalForces} from "./physics/force"
 import {Point} from "./position"
 import {Possibility} from "./possibility"
 import {Editor, editor, updateLoopTimer} from "./editor/ui"
@@ -184,7 +184,7 @@ export const updateCB = (self: Grid) => {
       }
 
       const {particle, cell} = current
-      applyForces(particle)
+      applyInternalForces(particle)
       handleCollision(self, {list, cell}, particle)
       applyTransform(particle)
 
