@@ -22,7 +22,7 @@ export class ExternalForce extends BaseForce {
   lastFrame: number;
   type: ForceType
 
-  applyForce: (particle: Particle) => void
+  updateParticle: (particle: Particle) => void
 }
 
 export const applyExternalForce = (grid: Grid, force: ExternalForce) => {
@@ -32,7 +32,7 @@ export const applyExternalForce = (grid: Grid, force: ExternalForce) => {
     } else if (force.vy < 0) {
       return Direction.BOTTOM_LEFT
     } else {
-      force.applyForce = (particle) => applyParticleLeftForce(force, particle)
+      force.updateParticle = (particle) => updateParticleLeftForce(force, particle)
       prepareForceFromLeft(grid, force)
       return
     }
@@ -42,6 +42,7 @@ export const applyExternalForce = (grid: Grid, force: ExternalForce) => {
     } else if (force.vy < 0) {
       return Direction.BOTTOM_RIGHT
     } else {
+      force.updateParticle = (particle) => updateParticleRightForce(force, particle)
       return Direction.RIGHT
     }
   } else {
@@ -53,13 +54,13 @@ export const applyExternalForce = (grid: Grid, force: ExternalForce) => {
   }
 }
 
-const applyParticleLeftForce = (self: ExternalForce, particle: Particle) => {
+const updateParticleLeftForce = (self: ExternalForce, particle: Particle) => {
   if (particle.vx < self.vx) {
     particle.vx = Math.min(particle.vx + self.vx, self.vx)
   }
 }
 
-const applyParticleRightForce = (self: ExternalForce, particle: Particle) => {
+const updateParticleRightForce = (self: ExternalForce, particle: Particle) => {
   if (self.vx < particle.vx) {
     particle.vx = Math.max(particle.vx + self.vx, self.vx)
   }
@@ -71,9 +72,7 @@ interface ParticleRow {
   particles: Particle[]
 }
 
-
 const prepareForceFromLeft = (grid: Grid, force: ExternalForce) => {
-
   const loopRow = (x: number, y: number, rows: ParticleRow[]) => {
     const spot = grid.getPossibilitySpot(x, y)
     let current = spot.head
@@ -115,42 +114,69 @@ const prepareForceFromLeft = (grid: Grid, force: ExternalForce) => {
   }
 }
 
-interface ShieldedArea {
+interface HorizontalArea {
+  xStart: number
+  xEnd: number
+}
+
+interface VerticalArea {
   yStart: number
   yEnd: number
 }
 
+const mergeVerticalShieldedAreas = (shieldedAreas: VerticalArea[]) => {
+  if (shieldedAreas.length < 2) return
+
+  for (let i = 1; i < shieldedAreas.length; i++) {
+    const current = shieldedAreas[i]
+    const previous = shieldedAreas[i - 1]
+
+    if (previous.yStart <= current.yStart && current.yStart <= previous.yEnd
+      || previous.yStart <= current.yEnd && current.yEnd <= previous.yEnd) {
+      previous.yStart = Math.min(previous.yStart, current.yStart)
+      previous.yEnd = Math.max(previous.yEnd, current.yEnd)
+      shieldedAreas.splice(i--)
+    }
+  }
+}
+
+const isVerticallyShielded = (shieldedAreas: VerticalArea[], index: number, particle: Particle) => {
+  if (index === shieldedAreas.length) {
+    shieldedAreas.push({
+      yStart: particle.y,
+      yEnd: particle.y + particle.diameter
+    })
+    return false
+  }
+
+  const area = shieldedAreas[index]
+
+  if (shieldedTop(particle, area)) {
+    if (!shieldedBottom(particle, area)) {
+      area.yEnd = particle.y + particle.diameter
+      // for now partial hit will be handled as fully shielded
+    }
+    return true
+  } else if (shieldedBottom(particle, area)) {
+    area.yStart = particle.y
+    // for now partial hit will be handled as fully shielded
+    return true
+  } else {
+    isVerticallyShielded(shieldedAreas, index + 1, particle)
+  }
+}
+
 const applyForceFromLeft = (grid: Grid, force: ExternalForce, row: ParticleRow) => {
-  const shieldedAreas: ShieldedArea[] = []
+  const shieldedAreas: VerticalArea[] = []
 
   const updateCurrent = (index: number) => {
     const particle = row.particles[index]
-    let shielded = false
 
-    for (let shieldArea of shieldedAreas) {
-      if (shieldedTop(particle, shieldArea)) {
-        shielded = true
-        if (!shieldedBottom(particle, shieldArea)) {
-          shieldArea.yEnd = particle.y + particle.diameter
-          // TODO partial collision 
-          // for now partial will be handled as full shielded
-        }
-      } else if (shieldedBottom(particle, shieldArea)) {
-        shielded = true
-        shieldArea.yStart = particle.y
-        // TODO partial collision
-        // for now partial will be handled as full shielded
-      }
-    }
-
-    if (!shielded) {
-      shieldedAreas.push({
-        yStart: particle.y,
-        yEnd: particle.y + particle.diameter
-      })
-      applyAllForces(particle, force)
-    } else {
+    if (isVerticallyShielded(shieldedAreas, 0, particle)) {
       applyInternalForces(particle)
+      mergeVerticalShieldedAreas(shieldedAreas)
+    } else {
+      applyAllForces(particle, force)
     }
 
     handleCollision(grid, grid.getSpot(particle.x, particle.y), particle)
@@ -166,11 +192,11 @@ const applyForceFromLeft = (grid: Grid, force: ExternalForce, row: ParticleRow) 
   }
 }
 
-const shieldedTop = (particle: Particle, shieldArea: ShieldedArea) => {
+const shieldedTop = (particle: Particle, shieldArea: VerticalArea) => {
   return shieldArea.yStart <= particle.y && particle.y <= shieldArea.yEnd
 }
 
-const shieldedBottom = (particle: Particle, shieldArea: ShieldedArea) => {
+const shieldedBottom = (particle: Particle, shieldArea: VerticalArea) => {
   const particleYEnd = particle.y + particle.diameter
   return shieldArea.yStart <= particleYEnd && particleYEnd <= shieldArea.yEnd
 }

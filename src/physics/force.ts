@@ -42,7 +42,7 @@ export const applyAllForces = (particle: Particle, externalForce: ExternalForce)
     applyInternalForce(particle, internalForce)
   }
 
-  externalForce.applyForce(particle)
+  externalForce.updateParticle(particle)
 
   if (particle.frame === particle.lastFrame) {
     particle.frame = 0

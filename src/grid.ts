@@ -112,13 +112,11 @@ export class Grid {
 
     const cell = this.getCell(xIndex, yIndex)
 
-    const {cellWidth, cellHeight, possibilityDiameter: probabilityDiameter} = this
+    const xResidual = x % this.cellWidth
+    const yResidual = y % this.cellHeight
 
-    const xResidual = x % cellWidth
-    const yResidual = y % cellHeight
-
-    const possibilityX = Math.floor(xResidual / probabilityDiameter)
-    const possibilityY = Math.floor(yResidual / probabilityDiameter)
+    const possibilityX = Math.floor(xResidual / this.possibilityDiameter)
+    const possibilityY = Math.floor(yResidual / this.possibilityDiameter)
 
     const list = this.getPossibilitySpot(possibilityX, possibilityY)
 
