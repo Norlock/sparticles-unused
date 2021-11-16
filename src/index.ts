@@ -41,7 +41,7 @@ const initGrid = () => {
       green: 255
     },
     weight: 1,
-    diameter: 8
+    diameter: 5
   }
 
   app.stage.addChild(grid.container as PixiParticleContainer)
