@@ -9,41 +9,31 @@ export const handleCollision = (grid: Grid, currentSpot: Spot, particle: Particl
   const newX = particle.x + particle.vx
   const newY = particle.y + particle.vy
 
-  const newXYSpot = grid.getSpot(newX, newY)
-  const newXYASpot = grid.getSpot(newX + particle.diameter, newY)
-  const newXYBSpot = grid.getSpot(newX, newY + particle.diameter)
-  const newXYCSpot = grid.getSpot(newX + particle.diameter, newY + particle.diameter)
+  let neighbours = grid.getNeighbourhood(newX, newY, particle.diameter)
 
-  if (!doesCollide(currentSpot, newXYSpot) && !doesCollide(currentSpot, newXYASpot)
-    && !doesCollide(currentSpot, newXYBSpot) && !doesCollide(currentSpot, newXYCSpot)) {
-    return moveToProbability(currentSpot.list, newXYSpot, particle)
+  if (neighbours?.every(neighbour => !doesCollide(currentSpot, neighbour))) {
+    return moveToProbability(currentSpot.list, neighbours[0], particle)
   }
 
   // Collision occured. check if other movements still possible
-  const newXSpot = grid.getSpot(newX, particle.y)
-  const newXASpot = grid.getSpot(newX + particle.diameter, particle.y)
-  const newXBSpot = grid.getSpot(newX, particle.y + particle.diameter)
-  const newXCSpot = grid.getSpot(newX + particle.diameter, particle.y + particle.diameter)
 
-  if (doesCollide(currentSpot, newXSpot) || doesCollide(currentSpot, newXASpot)
-    || doesCollide(currentSpot, newXBSpot) || doesCollide(currentSpot, newXCSpot)) {
-    particle.vx = 0
-  } else {
+  neighbours = grid.getNeighbourhood(newX, particle.y, particle.diameter)
+
+  if (neighbours?.every(neighbour => !doesCollide(currentSpot, neighbour))) {
     particle.vy = 0
-    return moveToProbability(currentSpot.list, newXSpot, particle)
+    return moveToProbability(currentSpot.list, neighbours[0], particle)
+  } else {
+    particle.vx = 0
   }
 
-  const newYSpot = grid.getSpot(particle.x, newY)
-  const newYASpot = grid.getSpot(particle.x, newY + particle.diameter)
-  const newYBSpot = grid.getSpot(particle.x + particle.diameter, newY)
-  const newYCSpot = grid.getSpot(particle.x + particle.diameter, newY + particle.diameter)
 
-  if (doesCollide(currentSpot, newYSpot) || doesCollide(currentSpot, newYASpot)
-    || doesCollide(currentSpot, newYBSpot) || doesCollide(currentSpot, newYCSpot)) {
-    particle.vy = 0
-  } else {
+  neighbours = grid.getNeighbourhood(particle.x, newY, particle.diameter)
+
+  if (neighbours?.every(neighbour => !doesCollide(currentSpot, neighbour))) {
     particle.vx = 0
-    return moveToProbability(currentSpot.list, newYSpot, particle)
+    return moveToProbability(currentSpot.list, neighbours[0], particle)
+  } else {
+    particle.vy = 0
   }
 }
 

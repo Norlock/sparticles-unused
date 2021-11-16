@@ -47,7 +47,7 @@ const initGrid = () => {
   app.stage.addChild(grid.container as PixiParticleContainer)
 
   const fill = grid.fill(attributes, PixiGraphicalEntityFactory())
-  fill.blueNoise(10, fireflies)
+  fill.blueNoise(20, fireflies)
 
   setTimeout(() => grid.start(), 3000)
 }

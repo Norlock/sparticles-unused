@@ -101,6 +101,38 @@ export class Grid {
     return this.possibilitySpots[yIndex * this.possibilityXCount + xIndex]
   }
 
+  getNeighbourhood(x: number, y: number, diameter: number) {
+    const xResidual = x % this.cellWidth
+    const yResidual = y % this.cellHeight
+    const hasNewXSpot = this.possibilityDiameter < xResidual + diameter
+    const hasNewYSpot = this.possibilityDiameter < yResidual + diameter
+
+    const currentSpot = this.getSpot(x, y)
+    if (!currentSpot) return
+
+    const neighbours: Spot[] = [currentSpot]
+
+    if (hasNewXSpot) {
+      const newXSpot = this.getSpot(x + diameter, y)
+      if (newXSpot)
+        neighbours.push(newXSpot)
+
+      if (hasNewYSpot) {
+        const newXYSpot = this.getSpot(x + diameter, y + diameter)
+        if (newXYSpot)
+          neighbours.push(newXYSpot)
+      }
+    }
+
+    if (hasNewYSpot) {
+      const newYSpot = this.getSpot(x, y + diameter)
+      if (newYSpot)
+        neighbours.push(newYSpot)
+    }
+
+    return neighbours
+  }
+
   getSpot(x: number, y: number): Spot {
     if (x < 0 || this.gridWidth <= x
       || y < 0 || this.gridHeight <= y) {
