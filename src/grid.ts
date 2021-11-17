@@ -11,7 +11,7 @@ import {applyInternalForces} from "./physics/force"
 import {Point} from "./position"
 import {Possibility} from "./possibility"
 import {Editor, editor, updateLoopTimer} from "./editor/ui"
-import {applyExternalForce, ExternalForce} from "./physics/externalForces"
+import {ExternalForce} from "./physics/externalForces"
 
 type UpdateSpot = (list: PossibilityList) => void
 
@@ -23,7 +23,6 @@ export interface GridOptions {
   cellYCount: number
   position: Point
   showUI: boolean
-  forces?: ExternalForce[]
 }
 
 export interface Spot {
@@ -51,28 +50,23 @@ export class Grid {
   isRendering = false
   particleCount = 0
   editor: Editor
-  forces: ExternalForce[]
+  forces: ExternalForce[] = []
   lastFrame: number
   frame = 0
 
   constructor(options: GridOptions, factory: ParticleContainerFactory) {
     const {possibilityXCount, possibilityYCount,
-      cellXCount, cellYCount, probabilityDiameter, position, forces} = options
+      cellXCount, cellYCount, probabilityDiameter, position} = options
 
     this.cellWidth = possibilityXCount * probabilityDiameter
     this.cellHeight = possibilityYCount * probabilityDiameter
     this.gridWidth = cellXCount * this.cellWidth
     this.gridHeight = cellYCount * this.cellHeight
-    this.forces = forces ?? []
     this.possibilityXCount = possibilityXCount
     this.possibilityYCount = possibilityYCount
     this.possibilityDiameter = probabilityDiameter
     this.cellXCount = cellXCount
     this.cellYCount = cellYCount
-
-    this.lastFrame = this.forces.reduce(
-      (last, current) => Math.max(last, current.lastFrame), 0
-    )
 
     this.possibilitySpots = createProbabilityGrid(possibilityXCount, possibilityYCount)
     this.cells = createCellGrid(this)
@@ -83,6 +77,15 @@ export class Grid {
       this.container.drawDevGrid(options)
       this.editor = editor(this)
     }
+  }
+
+  setExternalForces(forces: ExternalForce[]) {
+    console.log(forces)
+    this.forces = forces
+
+    this.lastFrame = this.forces.reduce(
+      (last, current) => Math.max(last, current.lastFrame), 0
+    )
   }
 
   addParticle(particle: Particle) {
@@ -195,7 +198,7 @@ const start = (self: Grid) => {
 const updateFrame = (self: Grid) => {
   const externalForce = activeExternalForce(self)
   if (externalForce) {
-    applyExternalForce(self, externalForce)
+    externalForce.apply()
   } else {
     horizontalTopLoopFromLeft(self, updateCB(self))
   }

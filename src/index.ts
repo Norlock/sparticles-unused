@@ -31,8 +31,8 @@ const initGrid = () => {
       y: 100
     },
     showUI: true,
-    forces: createForces()
   }, containerFactory)
+  grid.setExternalForces(externalForces(grid))
 
   const attributes: ParticleAttributes = {
     color: {
@@ -52,20 +52,22 @@ const initGrid = () => {
   setTimeout(() => grid.start(), 3000)
 }
 
-const createForces = () => {
-  const force1 = new ExternalForce()
-  force1.vx = 0.5
-  force1.vy = 0
-  force1.type = "dynamic"
-  force1.firstFrame = 0
-  force1.lastFrame = 14 * 15
+const externalForces = (grid: Grid) => {
+  const force1 = new ExternalForce(grid, {
+    vx: 1,
+    vy: 0,
+    type: "dynamic",
+    firstFrame: 0,
+    lastFrame: 14 * 15
+  })
 
-  const force2 = new ExternalForce()
-  force2.vx = -1
-  force2.vy = 0
-  force2.type = "dynamic"
-  force2.firstFrame = 20 * 15
-  force2.lastFrame = 34 * 15
+  const force2 = new ExternalForce(grid, {
+    vx: -1,
+    vy: 0,
+    type: "dynamic",
+    firstFrame: 20 * 15,
+    lastFrame: 34 * 15
+  })
 
   return [force1, force2]
 }

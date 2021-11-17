@@ -9,47 +9,68 @@ import {applyAllForces, applyInternalForces} from "./force";
 import {Direction} from "./lineCaster";
 import {applyTransform} from "./transform";
 
-// dynamic means the force collides with particles and have residual effect (e.g. wind blowing)  
+// dynamic means the force collides with particles and that shields the particles behind (e.g. wind blowing)  
+// static is used for instance for gravity where it will be applied to all 
+// particles no matter the position
 type ForceType = "static" | "dynamic"
 
-export class BaseForce {
+export interface ExternalForceOptions {
+  firstFrame: number;
+  lastFrame: number;
+  type: ForceType
   vx: number;
   vy: number;
   vz?: number;
 }
 
-// TODO in future you can apply external force on partial space inside the grid
-export class ExternalForce extends BaseForce {
+// TODO in future you can apply external force on partial space inside the grid, maybe
+export class ExternalForce {
   firstFrame: number;
   lastFrame: number;
   type: ForceType
+  vx: number;
+  vy: number;
+  vz?: number;
 
   updateParticle: (particle: Particle, fraction: number) => void
+  apply: () => void
+
+  constructor(grid: Grid, options: ExternalForceOptions) {
+    this.firstFrame = options.firstFrame
+    this.lastFrame = options.lastFrame
+    this.type = options.type
+    this.vx = options.vx
+    this.vy = options.vy
+    this.vz = options.vz
+    setForceFunctions(grid, this)
+  }
 }
 
-export const applyExternalForce = (grid: Grid, force: ExternalForce) => {
-  if (0 < force.vx) {
-    if (0 < force.vy) {
+const setForceFunctions = (grid: Grid, self: ExternalForce) => {
+  if (0 < self.vx) {
+    if (0 < self.vy) {
       return Direction.TOP_LEFT
-    } else if (force.vy < 0) {
+    } else if (self.vy < 0) {
       return Direction.BOTTOM_LEFT
     } else {
-      force.updateParticle = (particle, fraction) => updateParticleLeftForce(force, particle, fraction)
-      prepareForceFromLeft(grid, force)
+      console.log('left force', self)
+      self.updateParticle = (particle, fraction) => updateParticleLeftForce(self, particle, fraction)
+      self.apply = () => prepareForceFromLeft(grid, self)
       return
     }
-  } else if (force.vx < 0) {
-    if (0 < force.vy) {
+  } else if (self.vx < 0) {
+    if (0 < self.vy) {
       return Direction.TOP_RIGHT
-    } else if (force.vy < 0) {
+    } else if (self.vy < 0) {
       return Direction.BOTTOM_RIGHT
     } else {
-      force.updateParticle = (particle, fraction) => updateParticleRightForce(force, particle, fraction)
-      prepareForceFromRight(grid, force)
+      console.log('right force', self)
+      self.updateParticle = (particle, fraction) => updateParticleRightForce(self, particle, fraction)
+      self.apply = () => prepareForceFromRight(grid, self)
       return
     }
   } else {
-    if (0 < force.vy) {
+    if (0 < self.vy) {
       return Direction.TOP
     } else {
       return Direction.BOTTOM
