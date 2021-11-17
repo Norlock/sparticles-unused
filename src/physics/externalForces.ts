@@ -1,7 +1,9 @@
 // static means the force is applied to each particle (e.g. falling down)
 
 import {Grid} from "src/grid";
+import {PossibilityList} from "src/list";
 import {Particle} from "src/particle";
+import {Possibility} from "src/possibility";
 import {handleCollision} from "./collision";
 import {applyAllForces, applyInternalForces} from "./force";
 import {Direction} from "./lineCaster";
@@ -43,7 +45,8 @@ export const applyExternalForce = (grid: Grid, force: ExternalForce) => {
       return Direction.BOTTOM_RIGHT
     } else {
       force.updateParticle = (particle, fraction) => updateParticleRightForce(force, particle, fraction)
-      return Direction.RIGHT
+      prepareForceFromRight(grid, force)
+      return
     }
   } else {
     if (0 < force.vy) {
@@ -72,45 +75,99 @@ interface ParticleRow {
   particles: Particle[]
 }
 
+const iterateSpot = (list: PossibilityList, cb: (current: Possibility) => void) => {
+  let current = list.head
+
+  while (current) {
+    if (current.inQueue === true) {
+      current.inQueue = false
+      current = current.next
+      continue
+    }
+
+    cb(current)
+    current = current.next
+  }
+}
+
 const prepareForceFromLeft = (grid: Grid, force: ExternalForce) => {
   const loopRow = (x: number, y: number, rows: ParticleRow[]) => {
-    const list = grid.getPossibilityList(x, y)
-    let current = list.head
-
-    while (current) {
-      if (current.inQueue === true) {
-        current.inQueue = false
-        current = current.next
-        continue
-      }
-
-      const match = rows.find(x => x.y === current.cell.y)
-
-      if (match) {
-        match.particles.push(current.particle)
-      } else {
-        rows.push({
-          particles: [current.particle],
-          y: current.cell.y
-        })
-      }
-
-      current = current.next
-    }
+    const callback = (current: Possibility) => addParticleToRowSplitVertically(rows, current)
+    iterateSpot(grid.getPossibilityList(x, y), callback)
 
     if (x < grid.possibilityXCount - 1) {
       loopRow(x + 1, y, rows)
     } else {
-      // applyForces
       for (let row of rows) {
         row.particles.sort((a, b) => a.x - b.x)
-        applyForceFromLeft(grid, force, row)
+        applyHorizontalForce(grid, force, row)
       }
     }
   }
 
   for (let y = 0; y < grid.possibilityYCount; y++) {
     loopRow(0, y, [])
+  }
+}
+
+const prepareForceFromRight = (grid: Grid, force: ExternalForce) => {
+  const loopRow = (x: number, y: number, rows: ParticleRow[]) => {
+    const callback = (current: Possibility) => addParticleToRowSplitVertically(rows, current)
+    iterateSpot(grid.getPossibilityList(x, y), callback)
+
+    if (0 < x) {
+      loopRow(x - 1, y, rows)
+    } else {
+      for (let row of rows) {
+        row.particles.sort((a, b) => b.x - a.x)
+        applyHorizontalForce(grid, force, row)
+      }
+    }
+  }
+
+  const startX = grid.possibilityXCount - 1
+  for (let y = 0; y < grid.possibilityYCount; y++) {
+    loopRow(startX, y, [])
+  }
+}
+
+const applyHorizontalForce = (grid: Grid, force: ExternalForce, row: ParticleRow) => {
+  const shieldedAreas: VerticalArea[] = []
+
+  const updateCurrent = (index: number) => {
+    const particle = row.particles[index]
+
+    const fraction = isVerticallyShielded(shieldedAreas, 0, particle)
+    if (0 === fraction) {
+      applyInternalForces(particle)
+    } else {
+      applyAllForces(particle, force, fraction)
+    }
+
+    mergeVerticalShieldedAreas(shieldedAreas)
+    handleCollision(grid, grid.getSpot(particle.x, particle.y), particle)
+    applyTransform(particle)
+
+    if (index < row.particles.length - 1) {
+      updateCurrent(index + 1)
+    }
+  }
+
+  if (0 < row.particles.length) {
+    updateCurrent(0)
+  }
+}
+
+const addParticleToRowSplitVertically = (rows: ParticleRow[], current: Possibility) => {
+  const match = rows.find(x => x.y === current.cell.y)
+
+  if (match) {
+    match.particles.push(current.particle)
+  } else {
+    rows.push({
+      particles: [current.particle],
+      y: current.cell.y
+    })
   }
 }
 
@@ -166,33 +223,6 @@ const isVerticallyShielded = (shieldedAreas: VerticalArea[], index: number, part
     return residual / particle.diameter
   } else {
     return isVerticallyShielded(shieldedAreas, index + 1, particle)
-  }
-}
-
-const applyForceFromLeft = (grid: Grid, force: ExternalForce, row: ParticleRow) => {
-  const shieldedAreas: VerticalArea[] = []
-
-  const updateCurrent = (index: number) => {
-    const particle = row.particles[index]
-
-    const fraction = isVerticallyShielded(shieldedAreas, 0, particle)
-    if (0 === fraction) {
-      applyInternalForces(particle)
-    } else {
-      applyAllForces(particle, force, fraction)
-    }
-
-    mergeVerticalShieldedAreas(shieldedAreas)
-    handleCollision(grid, grid.getSpot(particle.x, particle.y), particle)
-    applyTransform(particle)
-
-    if (index < row.particles.length - 1) {
-      updateCurrent(index + 1)
-    }
-  }
-
-  if (0 < row.particles.length) {
-    updateCurrent(0)
   }
 }
 

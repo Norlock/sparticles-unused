@@ -67,7 +67,7 @@ const createForces = () => {
   force2.firstFrame = 20 * 15
   force2.lastFrame = 34 * 15
 
-  return [force1]
+  return [force1, force2]
 }
 
 initGrid()
