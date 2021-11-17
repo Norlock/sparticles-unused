@@ -33,7 +33,7 @@ export const applyInternalForces = (particle: Particle) => {
   }
 }
 
-export const applyAllForces = (particle: Particle, externalForce: ExternalForce) => {
+export const applyAllForces = (particle: Particle, externalForce: ExternalForce, fraction: number) => {
 
   const internalForce = particle.forces.find(
     x => x.firstFrame <= particle.frame && particle.frame <= x.lastFrame)
@@ -42,7 +42,7 @@ export const applyAllForces = (particle: Particle, externalForce: ExternalForce)
     applyInternalForce(particle, internalForce)
   }
 
-  externalForce.updateParticle(particle)
+  externalForce.updateParticle(particle, fraction)
 
   if (particle.frame === particle.lastFrame) {
     particle.frame = 0

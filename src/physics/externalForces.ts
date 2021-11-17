@@ -22,7 +22,7 @@ export class ExternalForce extends BaseForce {
   lastFrame: number;
   type: ForceType
 
-  updateParticle: (particle: Particle) => void
+  updateParticle: (particle: Particle, fraction: number) => void
 }
 
 export const applyExternalForce = (grid: Grid, force: ExternalForce) => {
@@ -32,7 +32,7 @@ export const applyExternalForce = (grid: Grid, force: ExternalForce) => {
     } else if (force.vy < 0) {
       return Direction.BOTTOM_LEFT
     } else {
-      force.updateParticle = (particle) => updateParticleLeftForce(force, particle)
+      force.updateParticle = (particle, fraction) => updateParticleLeftForce(force, particle, fraction)
       prepareForceFromLeft(grid, force)
       return
     }
@@ -42,7 +42,7 @@ export const applyExternalForce = (grid: Grid, force: ExternalForce) => {
     } else if (force.vy < 0) {
       return Direction.BOTTOM_RIGHT
     } else {
-      force.updateParticle = (particle) => updateParticleRightForce(force, particle)
+      force.updateParticle = (particle, fraction) => updateParticleRightForce(force, particle, fraction)
       return Direction.RIGHT
     }
   } else {
@@ -54,15 +54,15 @@ export const applyExternalForce = (grid: Grid, force: ExternalForce) => {
   }
 }
 
-const updateParticleLeftForce = (self: ExternalForce, particle: Particle) => {
+const updateParticleLeftForce = (self: ExternalForce, particle: Particle, fraction: number) => {
   if (particle.vx < self.vx) {
-    particle.vx = Math.min(particle.vx + self.vx, self.vx)
+    particle.vx = Math.min(particle.vx + (self.vx * fraction), self.vx)
   }
 }
 
-const updateParticleRightForce = (self: ExternalForce, particle: Particle) => {
+const updateParticleRightForce = (self: ExternalForce, particle: Particle, fraction: number) => {
   if (self.vx < particle.vx) {
-    particle.vx = Math.max(particle.vx + self.vx, self.vx)
+    particle.vx = Math.max(particle.vx + (self.vx * fraction), self.vx)
   }
 }
 
@@ -74,8 +74,8 @@ interface ParticleRow {
 
 const prepareForceFromLeft = (grid: Grid, force: ExternalForce) => {
   const loopRow = (x: number, y: number, rows: ParticleRow[]) => {
-    const spot = grid.getPossibilitySpot(x, y)
-    let current = spot.head
+    const list = grid.getPossibilityList(x, y)
+    let current = list.head
 
     while (current) {
       if (current.inQueue === true) {
@@ -140,29 +140,32 @@ const mergeVerticalShieldedAreas = (shieldedAreas: VerticalArea[]) => {
   }
 }
 
-const isVerticallyShielded = (shieldedAreas: VerticalArea[], index: number, particle: Particle) => {
+const isVerticallyShielded = (shieldedAreas: VerticalArea[], index: number, particle: Particle): number => {
   if (index === shieldedAreas.length) {
     shieldedAreas.push({
       yStart: particle.y,
       yEnd: particle.y + particle.diameter
     })
-    return false
+    return 1
   }
 
   const area = shieldedAreas[index]
 
   if (shieldedTop(particle, area)) {
-    if (!shieldedBottom(particle, area)) {
-      area.yEnd = particle.y + particle.diameter
-      // for now partial hit will be handled as fully shielded
+    if (shieldedBottom(particle, area)) {
+      return 0
+    } else {
+      const particleYEnd = particle.y + particle.diameter
+      const residual = particleYEnd - area.yEnd
+      area.yEnd = particleYEnd
+      return residual / particle.diameter
     }
-    return true
   } else if (shieldedBottom(particle, area)) {
+    const residual = area.yStart - particle.y
     area.yStart = particle.y
-    // for now partial hit will be handled as fully shielded
-    return true
+    return residual / particle.diameter
   } else {
-    isVerticallyShielded(shieldedAreas, index + 1, particle)
+    return isVerticallyShielded(shieldedAreas, index + 1, particle)
   }
 }
 
@@ -172,13 +175,14 @@ const applyForceFromLeft = (grid: Grid, force: ExternalForce, row: ParticleRow) 
   const updateCurrent = (index: number) => {
     const particle = row.particles[index]
 
-    if (isVerticallyShielded(shieldedAreas, 0, particle)) {
+    const fraction = isVerticallyShielded(shieldedAreas, 0, particle)
+    if (0 === fraction) {
       applyInternalForces(particle)
-      mergeVerticalShieldedAreas(shieldedAreas)
     } else {
-      applyAllForces(particle, force)
+      applyAllForces(particle, force, fraction)
     }
 
+    mergeVerticalShieldedAreas(shieldedAreas)
     handleCollision(grid, grid.getSpot(particle.x, particle.y), particle)
     applyTransform(particle)
 
