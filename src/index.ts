@@ -41,32 +41,34 @@ const initGrid = () => {
       green: 255
     },
     weight: 1,
-    diameter: 5
+    diameter: 5,
+    decay: 0.01
   }
 
   app.stage.addChild(grid.container as PixiParticleContainer)
 
   const fill = grid.fill(attributes, PixiGraphicalEntityFactory())
   fill.blueNoise(20, fireflies)
+  //fill.blueNoise(20)
 
   setTimeout(() => grid.start(), 3000)
 }
 
 const externalForces = (grid: Grid) => {
   const force1 = new ExternalForce(grid, {
-    vx: 1,
+    vx: 0.5,
     vy: 0,
     type: "dynamic",
     firstFrame: 0,
-    lastFrame: 14 * 15
+    lastFrame: 7 * 15
   })
 
   const force2 = new ExternalForce(grid, {
-    vx: -1,
-    vy: 0,
+    vx: 0,
+    vy: -1,
     type: "dynamic",
     firstFrame: 20 * 15,
-    lastFrame: 34 * 15
+    lastFrame: 27 * 15
   })
 
   return [force1, force2]

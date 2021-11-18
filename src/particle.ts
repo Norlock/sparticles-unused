@@ -10,6 +10,7 @@ export interface ParticleAttributes {
     blue: number
   }
   weight: number,
+  decay?: number
   potential?: number,  // potential will be used to calculate collision resolution.
 }
 
@@ -34,6 +35,7 @@ export class Particle implements Position {
     blue: number
   }
   weight: number
+  decay: number
   potential?: number  // potential will be used to calculate collision resolution.
 
   graphicalEntity: GraphicalEntity
@@ -53,6 +55,7 @@ export class Particle implements Position {
     this.color = attributes.color
     this.weight = attributes.weight
     this.potential = attributes.potential
+    this.decay = attributes.decay ?? 0
 
     this.graphicalEntity = factory.create(this)
 

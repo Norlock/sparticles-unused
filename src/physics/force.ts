@@ -18,6 +18,18 @@ export interface Force {
 export type ApplyForces = (particle: Particle) => Force[]
 
 export const applyInternalForces = (particle: Particle) => {
+  updateInternalForces(particle)
+  updateFrameCounter(particle)
+}
+
+export const applyAllForces = (particle: Particle, externalForce: ExternalForce, fraction: number) => {
+  updateInternalForces(particle)
+  externalForce.updateParticle(particle, fraction)
+  updateFrameCounter(particle)
+}
+
+const updateInternalForces = (particle: Particle) => {
+  decayForces(particle)
 
   const internalForce = particle.forces.find(
     x => x.firstFrame <= particle.frame && particle.frame <= x.lastFrame)
@@ -25,7 +37,9 @@ export const applyInternalForces = (particle: Particle) => {
   if (internalForce) {
     applyInternalForce(particle, internalForce)
   }
+}
 
+const updateFrameCounter = (particle: Particle) => {
   if (particle.frame === particle.lastFrame) {
     particle.frame = 0
   } else {
@@ -33,21 +47,18 @@ export const applyInternalForces = (particle: Particle) => {
   }
 }
 
-export const applyAllForces = (particle: Particle, externalForce: ExternalForce, fraction: number) => {
-
-  const internalForce = particle.forces.find(
-    x => x.firstFrame <= particle.frame && particle.frame <= x.lastFrame)
-
-  if (internalForce) {
-    applyInternalForce(particle, internalForce)
+// If there is a decay 
+const decayForces = (particle: Particle) => {
+  if (0 < particle.vx) {
+    particle.vx = Math.max(0, particle.vx - particle.decay)
+  } else if (particle.vx < 0) {
+    particle.vx = Math.min(0, particle.vx + particle.decay)
   }
 
-  externalForce.updateParticle(particle, fraction)
-
-  if (particle.frame === particle.lastFrame) {
-    particle.frame = 0
-  } else {
-    particle.frame++
+  if (0 < particle.vy) {
+    particle.vy = Math.max(0, particle.vy - particle.decay)
+  } else if (particle.vy < 0) {
+    particle.vy = Math.min(0, particle.vy + particle.decay)
   }
 }
 

@@ -33,5 +33,11 @@ cell. Just by filtering the probabilities of the same cell.
 - [ ] editor
 - [ ] forces for particle (certain movement patterns)
 - [ ] external forces (to create more lively effect)
-- [ ] Convert 2d array to 1d
+- [x] Convert 2d array to 1d
 - [ ] better collision detection
+- [ ] decay not amplified forces.
+
+
+
+
+// Cell index on a spot is always connected. 

@@ -4,27 +4,20 @@ import {GraphicalEntity, GraphicalEntityFactory} from "./graphicalEntity"
 
 class PixiGraphicalEntity implements GraphicalEntity {
   mesh: PIXI.Mesh<PIXI.Shader>
-  particle: Particle
 
   constructor(particle: Particle) {
-    this.particle = particle
     this.mesh = createMesh(particle)
-  }
-
-  transform() {
-    this.mesh.x = this.particle.x
-    this.mesh.y = this.particle.y
   }
 }
 
 const createMesh = (particle: Particle) => {
-  const {red, green, blue} = particle.color
+  const {color} = particle
   const geometry = new PIXI.Geometry()
     .addAttribute('aVertexPosition', [-100, -50, 100, -50, 0, 100]);
 
-  const redFraction = red / 255
-  const greenFraction = green / 255
-  const blueFraction = blue / 255
+  const redFraction = color.red / 255
+  const greenFraction = color.green / 255
+  const blueFraction = color.blue / 255
 
   const shader = PIXI.Shader.from(`
     precision mediump float;
