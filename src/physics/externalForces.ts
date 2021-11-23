@@ -1,9 +1,8 @@
 // static means the force is applied to each particle (e.g. falling down)
 
-import {Grid} from "src/grid";
+import {Grid, Spot} from "src/grid";
 import {PossibilityList} from "src/list";
 import {Particle} from "src/particle";
-import {Possibility} from "src/possibility";
 import {handleCollision} from "./collision";
 import {applyAllForces, applyInternalForces} from "./force";
 import {Direction} from "./lineCaster";
@@ -42,11 +41,11 @@ export class ExternalForce {
     this.vx = options.vx
     this.vy = options.vy
     this.vz = options.vz
-    setForceFunctions(grid, this)
+    setFunctions(grid, this)
   }
 }
 
-const setForceFunctions = (grid: Grid, self: ExternalForce) => {
+const setFunctions = (grid: Grid, self: ExternalForce) => {
   if (0 < self.vx) {
     if (0 < self.vy) {
       return Direction.TOP_LEFT
@@ -107,34 +106,36 @@ const updateParticleBottomForce = (self: ExternalForce, particle: Particle, frac
 interface ParticleRow {
   y?: number
   x?: number
-  particles: Particle[]
+  spots: Spot[]
 }
 
-const iterateSpot = (list: PossibilityList, cb: (current: Possibility) => void) => {
-  let current = list.head
+const iterateSpot = (list: PossibilityList, cb: (current: Spot) => void) => {
+  let possibility = list.head
 
-  while (current) {
-    if (current.inQueue === true) {
-      current.inQueue = false
-      current = current.next
+  while (possibility) {
+    if (possibility.inQueue === true) {
+      possibility.inQueue = false
+      possibility = possibility.next
       continue
     }
 
-    cb(current)
-    current = current.next
+    cb({list, possibility})
+    possibility = possibility.next
   }
 }
 
 const prepareForceFromLeft = (grid: Grid, force: ExternalForce) => {
   const loopRow = (x: number, y: number, rows: ParticleRow[]) => {
-    const callback = (current: Possibility) => addParticleToRowSplitVertically(rows, current)
-    iterateSpot(grid.getPossibilityList(x, y), callback)
+    const callback = (current: Spot) => addParticleToRowSplitVertically(rows, current)
+    iterateSpot(grid.getPossibilityListByIndex(x, y), callback)
 
     if (x < grid.possibilityXCount - 1) {
       loopRow(x + 1, y, rows)
     } else {
       for (let row of rows) {
-        row.particles.sort((a, b) => a.x - b.x)
+        row.spots.sort((a, b) => a.possibility.cellXIndex - b.possibility.cellXIndex)
+        console.log('check', row)
+        debugger
         applyHorizontalForce(grid, force, row)
       }
     }
@@ -147,14 +148,16 @@ const prepareForceFromLeft = (grid: Grid, force: ExternalForce) => {
 
 const prepareForceFromRight = (grid: Grid, force: ExternalForce) => {
   const loopRow = (x: number, y: number, rows: ParticleRow[]) => {
-    const callback = (current: Possibility) => addParticleToRowSplitVertically(rows, current)
-    iterateSpot(grid.getPossibilityList(x, y), callback)
+    const callback = (current: Spot) => addParticleToRowSplitVertically(rows, current)
+    iterateSpot(grid.getPossibilityListByIndex(x, y), callback)
 
     if (0 < x) {
       loopRow(x - 1, y, rows)
     } else {
       for (let row of rows) {
-        row.particles.sort((a, b) => b.x - a.x)
+        // TODO check if sort on cell x is enough
+        row.spots.sort((a, b) => b.possibility.cellXIndex - a.possibility.cellXIndex)
+        console.log('check', row)
         applyHorizontalForce(grid, force, row)
       }
     }
@@ -168,14 +171,14 @@ const prepareForceFromRight = (grid: Grid, force: ExternalForce) => {
 
 const prepareForceFromTop = (grid: Grid, force: ExternalForce) => {
   const loopRow = (x: number, y: number, rows: ParticleRow[]) => {
-    const callback = (current: Possibility) => addParticleToRowSplitHorizontally(rows, current)
-    iterateSpot(grid.getPossibilityList(x, y), callback)
+    const callback = (current: Spot) => addParticleToRowSplitHorizontally(rows, current)
+    iterateSpot(grid.getPossibilityListByIndex(x, y), callback)
 
     if (y < grid.possibilityYCount - 1) {
       loopRow(x, y + 1, rows)
     } else {
       for (let row of rows) {
-        row.particles.sort((a, b) => a.y - b.y)
+        row.spots.sort((a, b) => a.possibility.particle.y - b.possibility.particle.y)
         applyVerticalForce(grid, force, row)
       }
     }
@@ -188,14 +191,14 @@ const prepareForceFromTop = (grid: Grid, force: ExternalForce) => {
 
 const prepareForceFromBottom = (grid: Grid, force: ExternalForce) => {
   const loopRow = (x: number, y: number, rows: ParticleRow[]) => {
-    const callback = (current: Possibility) => addParticleToRowSplitHorizontally(rows, current)
-    iterateSpot(grid.getPossibilityList(x, y), callback)
+    const callback = (current: Spot) => addParticleToRowSplitHorizontally(rows, current)
+    iterateSpot(grid.getPossibilityListByIndex(x, y), callback)
 
     if (0 < y) {
       loopRow(x, y - 1, rows)
     } else {
       for (let row of rows) {
-        row.particles.sort((a, b) => b.y - a.y)
+        row.spots.sort((a, b) => b.possibility.particle.y - a.possibility.particle.y)
         applyVerticalForce(grid, force, row)
       }
     }
@@ -211,7 +214,8 @@ const applyHorizontalForce = (grid: Grid, force: ExternalForce, row: ParticleRow
   const shieldedAreas: VerticalArea[] = []
 
   const updateCurrent = (index: number) => {
-    const particle = row.particles[index]
+    const spot = row.spots[index]
+    const {particle} = spot.possibility
 
     const fraction = isVerticallyShielded(shieldedAreas, 0, particle)
     if (0 === fraction) {
@@ -221,15 +225,15 @@ const applyHorizontalForce = (grid: Grid, force: ExternalForce, row: ParticleRow
     }
 
     mergeVerticalShieldedAreas(shieldedAreas)
-    handleCollision(grid, grid.getSpot(particle.x, particle.y), particle)
+    handleCollision(grid, spot)
     applyTransform(particle)
 
-    if (index < row.particles.length - 1) {
+    if (index < row.spots.length - 1) {
       updateCurrent(index + 1)
     }
   }
 
-  if (0 < row.particles.length) {
+  if (0 < row.spots.length) {
     updateCurrent(0)
   }
 }
@@ -238,7 +242,8 @@ const applyVerticalForce = (grid: Grid, force: ExternalForce, row: ParticleRow) 
   const shieldedAreas: HorizontalArea[] = []
 
   const updateCurrent = (index: number) => {
-    const particle = row.particles[index]
+    const spot = row.spots[index]
+    const {particle} = spot.possibility
 
     const fraction = isHorizontallyShielded(shieldedAreas, 0, particle)
     if (0 === fraction) {
@@ -248,41 +253,41 @@ const applyVerticalForce = (grid: Grid, force: ExternalForce, row: ParticleRow) 
     }
 
     mergeHorizontalShieldedAreas(shieldedAreas)
-    handleCollision(grid, grid.getSpot(particle.x, particle.y), particle)
+    handleCollision(grid, spot)
     applyTransform(particle)
 
-    if (index < row.particles.length - 1) {
+    if (index < row.spots.length - 1) {
       updateCurrent(index + 1)
     }
   }
 
-  if (0 < row.particles.length) {
+  if (0 < row.spots.length) {
     updateCurrent(0)
   }
 }
 
-const addParticleToRowSplitVertically = (rows: ParticleRow[], current: Possibility) => {
-  const match = rows.find(x => x.y === current.cell.y)
+const addParticleToRowSplitVertically = (rows: ParticleRow[], current: Spot) => {
+  const match = rows.find(x => x.y === current.possibility.cellYIndex)
 
   if (match) {
-    match.particles.push(current.particle)
+    match.spots.push(current)
   } else {
     rows.push({
-      particles: [current.particle],
-      y: current.cell.y
+      spots: [current],
+      y: current.possibility.cellYIndex
     })
   }
 }
 
-const addParticleToRowSplitHorizontally = (rows: ParticleRow[], current: Possibility) => {
-  const match = rows.find(particle => particle.x === current.cell.x)
+const addParticleToRowSplitHorizontally = (rows: ParticleRow[], current: Spot) => {
+  const match = rows.find(particle => particle.x === current.possibility.cellXIndex)
 
   if (match) {
-    match.particles.push(current.particle)
+    match.spots.push(current)
   } else {
     rows.push({
-      particles: [current.particle],
-      x: current.cell.x
+      spots: [current],
+      x: current.possibility.cellXIndex
     })
   }
 }

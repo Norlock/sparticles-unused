@@ -1,16 +1,19 @@
-import {Cell} from "./cell"
+import {Grid} from "./grid"
 import {Particle} from "./particle"
 
 export class Possibility {
   particle: Particle
-  cell: Cell
   next?: Possibility
   inQueue: boolean
 
-  constructor(particle: Particle, cell: Cell, inQueue: boolean) {
+  readonly cellXIndex: number
+  readonly cellYIndex: number
+
+  constructor(grid: Grid, particle: Particle, inQueue: boolean) {
     this.particle = particle
-    this.cell = cell
     this.inQueue = inQueue
+    this.cellXIndex = grid.getCellXIndex(this.particle.x)
+    this.cellYIndex = grid.getCellYIndex(this.particle.y)
   }
 }
 

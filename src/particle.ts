@@ -1,6 +1,7 @@
 import {Position} from "./position"
 import {GraphicalEntity, GraphicalEntityFactory} from "./graphicalEntity"
 import {ApplyForces, Force} from "./physics/force"
+import {Grid} from "./grid"
 
 export interface ParticleAttributes {
   diameter: number
@@ -9,9 +10,9 @@ export interface ParticleAttributes {
     green: number,
     blue: number
   }
-  weight: number,
+  weight: number
+  type: ParticleType
   decay?: number
-  potential?: number,  // potential will be used to calculate collision resolution.
 }
 
 export interface ParticleData {
@@ -19,6 +20,13 @@ export interface ParticleData {
   position: Position
   factory: GraphicalEntityFactory
   applyForces: ApplyForces
+}
+
+// In the future types can be determined by temperature.
+export enum ParticleType {
+  LIQUID,
+  GASS,
+  SOLID
 }
 
 export class Particle implements Position {
@@ -36,12 +44,16 @@ export class Particle implements Position {
   }
   weight: number
   decay: number
-  potential?: number  // potential will be used to calculate collision resolution.
+  type: ParticleType
+  vxEnergy: number  // potential will be used to calculate collision resolution.
+  vyEnergy: number
 
   graphicalEntity: GraphicalEntity
   forces: Force[] = []
   frame = 0
   readonly lastFrame: number
+
+  updateEnergy: (collider: Particle) => void
 
   constructor(data: ParticleData) {
     const {position, attributes, factory, applyForces} = data
@@ -54,8 +66,9 @@ export class Particle implements Position {
     this.diameter = attributes.diameter
     this.color = attributes.color
     this.weight = attributes.weight
-    this.potential = attributes.potential
+    this.vxEnergy = 0
     this.decay = attributes.decay ?? 0
+    this.type = attributes.type
 
     this.graphicalEntity = factory.create(this)
 
@@ -65,6 +78,28 @@ export class Particle implements Position {
     this.lastFrame = this.forces.reduce(
       (last, current) => Math.max(last, current.lastFrame), 0
     )
+
+    switch (this.type) {
+      case ParticleType.SOLID:
+        break
+      case ParticleType.LIQUID:
+        this.updateEnergy = (collider) => updateEnergyLiquid(this, collider)
+        break
+    }
+  }
+}
+
+const updateEnergyLiquid = (self: Particle, collider: Particle) => {
+  if (0 < collider.vx) {
+    self.vxEnergy = Math.max(self.vxEnergy, collider.vx)
+  } else if (collider.vx < 0) {
+    self.vxEnergy = Math.min(self.vxEnergy, collider.vx)
+  }
+
+  if (0 < collider.vy) {
+    self.vyEnergy = Math.max(self.vyEnergy, collider.vy)
+  } else if (collider.vy < 0) {
+    self.vyEnergy = Math.min(self.vyEnergy, collider.vy)
   }
 }
 

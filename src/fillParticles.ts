@@ -107,15 +107,10 @@ export const fillParticles = (grid: Grid, attributes: ParticleAttributes, factor
         let y = cellY + Math.floor(Math.random() * cellHeight)
 
         const spot = grid.getSpot(x, y)
-        let current = spot.list.head
 
-        while (current) {
-          if (current.cell === spot.cell) {
-            fill(remainder)
-            return
-          }
-
-          current = current.next
+        if (spot.possibility) {
+          fill(remainder)
+          return
         }
 
         addParticle(new Position({x, y}), applyForces)

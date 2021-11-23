@@ -1,7 +1,5 @@
-import {Particle} from '../particle'
+import {Particle} from 'src/particle'
 
-// TODO collission detection can futureX, futureY take place?
-// If not where should it move to?
 export const applyTransform = (particle: Particle): void => {
   particle.x += particle.vx
   particle.y += particle.vy

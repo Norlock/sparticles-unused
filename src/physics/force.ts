@@ -18,17 +18,6 @@ export interface Force {
 export type ApplyForces = (particle: Particle) => Force[]
 
 export const applyInternalForces = (particle: Particle) => {
-  updateInternalForces(particle)
-  updateFrameCounter(particle)
-}
-
-export const applyAllForces = (particle: Particle, externalForce: ExternalForce, fraction: number) => {
-  updateInternalForces(particle)
-  externalForce.updateParticle(particle, fraction)
-  updateFrameCounter(particle)
-}
-
-const updateInternalForces = (particle: Particle) => {
   decayForces(particle)
 
   const internalForce = particle.forces.find(
@@ -37,6 +26,12 @@ const updateInternalForces = (particle: Particle) => {
   if (internalForce) {
     applyInternalForce(particle, internalForce)
   }
+  updateFrameCounter(particle)
+}
+
+export const applyAllForces = (particle: Particle, externalForce: ExternalForce, fraction: number) => {
+  applyInternalForces(particle)
+  externalForce.updateParticle(particle, fraction)
 }
 
 const updateFrameCounter = (particle: Particle) => {

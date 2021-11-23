@@ -1,4 +1,3 @@
-import {Cell} from "./cell"
 import {fillParticles} from "./fillParticles"
 import {GraphicalEntityFactory} from "./graphicalEntity"
 import {PossibilityList} from "./list"
@@ -26,13 +25,12 @@ export interface GridOptions {
 }
 
 export interface Spot {
-  cell: Cell,
+  possibility?: Possibility,
   list: PossibilityList
 }
 
 export class Grid {
   possibilitySpots: PossibilityList[]
-  cells: Cell[]
   cellWidth: number
   cellHeight: number
   gridWidth: number
@@ -42,8 +40,6 @@ export class Grid {
   possibilityDiameter: number
   cellXCount: number
   cellYCount: number
-
-  averageLoopTime?: number
   showUI: boolean
 
   container: ParticleContainer
@@ -68,8 +64,7 @@ export class Grid {
     this.cellXCount = cellXCount
     this.cellYCount = cellYCount
 
-    this.possibilitySpots = createProbabilityGrid(possibilityXCount, possibilityYCount)
-    this.cells = createCellGrid(this)
+    this.possibilitySpots = createPossibilityGrid(possibilityXCount, possibilityYCount)
     this.container = factory.create(position)
 
     this.showUI = options.showUI
@@ -80,7 +75,6 @@ export class Grid {
   }
 
   setExternalForces(forces: ExternalForce[]) {
-    console.log(forces)
     this.forces = forces
 
     this.lastFrame = this.forces.reduce(
@@ -96,39 +90,39 @@ export class Grid {
     return fillParticles(this, attributes, factory)
   }
 
-  getCell(xIndex: number, yIndex: number): Cell {
-    return this.cells[yIndex * this.cellXCount + xIndex]
+  getCellXIndex(xCoord: number) {
+    return Math.floor(xCoord / this.cellWidth)
   }
 
-  getPossibilityList(xIndex: number, yIndex: number) {
-    return this.possibilitySpots[yIndex * this.possibilityXCount + xIndex]
+  getCellYIndex(yCoord: number) {
+    return Math.floor(yCoord / this.cellHeight)
   }
 
-  getNeighbourhood(x: number, y: number, diameter: number) {
-    const xResidual = x % this.cellWidth
-    const yResidual = y % this.cellHeight
+  getNeighbourhood(xCoord: number, yCoord: number, diameter: number) {
+    const xResidual = xCoord % this.cellWidth
+    const yResidual = yCoord % this.cellHeight
     const hasNewXSpot = this.possibilityDiameter < xResidual + diameter
     const hasNewYSpot = this.possibilityDiameter < yResidual + diameter
 
-    const currentSpot = this.getSpot(x, y)
+    const currentSpot = this.getSpot(xCoord, yCoord)
     if (!currentSpot) return
 
     const neighbours: Spot[] = [currentSpot]
 
     if (hasNewXSpot) {
-      const newXSpot = this.getSpot(x + diameter, y)
+      const newXSpot = this.getSpot(xCoord + diameter, yCoord)
       if (newXSpot)
         neighbours.push(newXSpot)
 
       if (hasNewYSpot) {
-        const newXYSpot = this.getSpot(x + diameter, y + diameter)
+        const newXYSpot = this.getSpot(xCoord + diameter, yCoord + diameter)
         if (newXYSpot)
           neighbours.push(newXYSpot)
       }
     }
 
     if (hasNewYSpot) {
-      const newYSpot = this.getSpot(x, y + diameter)
+      const newYSpot = this.getSpot(xCoord, yCoord + diameter)
       if (newYSpot)
         neighbours.push(newYSpot)
     }
@@ -136,26 +130,45 @@ export class Grid {
     return neighbours
   }
 
-  getSpot(x: number, y: number): Spot {
-    if (x < 0 || this.gridWidth <= x
-      || y < 0 || this.gridHeight <= y) {
+  getPossibilityListByIndex(xIndex: number, yIndex: number): PossibilityList {
+    return this.possibilitySpots[yIndex * this.possibilityXCount + xIndex]
+  }
+
+  getPossibilityList(xCoord: number, yCoord: number): PossibilityList {
+    if (xCoord < 0 || this.gridWidth <= xCoord
+      || yCoord < 0 || this.gridHeight <= yCoord) {
       return
     }
 
-    const xIndex = Math.floor(x / this.cellWidth)
-    const yIndex = Math.floor(y / this.cellHeight)
+    const xResidual = xCoord % this.cellWidth
+    const yResidual = yCoord % this.cellHeight
 
-    const cell = this.getCell(xIndex, yIndex)
+    const xIndex = Math.floor(xResidual / this.possibilityDiameter)
+    const yIndex = Math.floor(yResidual / this.possibilityDiameter)
 
-    const xResidual = x % this.cellWidth
-    const yResidual = y % this.cellHeight
+    return this.getPossibilityListByIndex(xIndex, yIndex)
+  }
 
-    const possibilityX = Math.floor(xResidual / this.possibilityDiameter)
-    const possibilityY = Math.floor(yResidual / this.possibilityDiameter)
+  getSpot(xCoord: number, yCoord: number): Spot {
 
-    const list = this.getPossibilityList(possibilityX, possibilityY)
+    const list = this.getPossibilityList(xCoord, yCoord)
+    if (!list) return
 
-    return {cell, list}
+    const cellXIndex = this.getCellXIndex(xCoord)
+    const cellYIndex = this.getCellYIndex(yCoord)
+
+    let possbility = list.head
+    while (possbility) {
+      if (cellXIndex === possbility.cellXIndex && cellYIndex === possbility.cellYIndex) {
+        return {
+          list,
+          possibility: possbility
+        }
+      }
+      possbility = possbility.next
+    }
+
+    return {list}
   }
 
   start() {
@@ -207,21 +220,21 @@ const updateFrame = (self: Grid) => {
 
 export const updateCB = (self: Grid) => {
   const update = (list: PossibilityList) => {
-    let current = list.head
+    let possibility = list.head
 
-    while (current) {
-      if (current.inQueue === true) {
-        current.inQueue = false
-        current = current.next
+    while (possibility) {
+      if (possibility.inQueue === true) {
+        possibility.inQueue = false
+        possibility = possibility.next
         continue
       }
 
-      const {particle, cell} = current
+      const {particle} = possibility
       applyInternalForces(particle)
-      handleCollision(self, {list, cell}, particle)
+      handleCollision(self, {list, possibility})
       applyTransform(particle)
 
-      current = current.next
+      possibility = possibility.next
     }
   }
 
@@ -246,7 +259,7 @@ const activeExternalForce = (self: Grid) => {
   return activeForce
 }
 
-const createProbabilityGrid = (probabilityXCount: number, probabilityYCount: number) => {
+const createPossibilityGrid = (probabilityXCount: number, probabilityYCount: number) => {
   const grid: PossibilityList[] = []
 
   // Create probabilities
@@ -259,46 +272,25 @@ const createProbabilityGrid = (probabilityXCount: number, probabilityYCount: num
   return grid
 }
 
-const createCellGrid = (self: Grid) => {
-  const cells: Cell[] = []
-  const {cellWidth, cellHeight, cellXCount, cellYCount} = self
-
-  for (let yIndex = 0; yIndex < cellYCount; yIndex++) {
-    for (let xIndex = 0; xIndex < cellXCount; xIndex++) {
-      let x = xIndex * cellWidth
-      let y = yIndex * cellHeight
-
-      cells.push(new Cell({x, y}))
-    }
-  }
-
-  return cells
-}
-
 const addParticle = (self: Grid, particle: Particle) => {
   const {cellWidth, cellHeight, possibilityDiameter} = self
   self.particleCount++
 
-  const spot = self.getSpot(particle.x, particle.y)
-  const {cell} = spot
   const xResidual = particle.x % cellWidth
   const yResidual = particle.y % cellHeight
 
   const possibilityX = Math.floor(xResidual / possibilityDiameter)
   const possibilityY = Math.floor(yResidual / possibilityDiameter)
 
-  // TODO dev var just for lining out particles
-  //particle.x = cell.x + possibilityX * possibilityDiameter + (possibilityDiameter / 2)
-  //particle.y = cell.y + possibilityY * possibilityDiameter + (possibilityDiameter / 2)
-
-  self.getPossibilityList(possibilityX, possibilityY).add(new Possibility(particle, cell, false))
+  const possibility = new Possibility(self, particle, false)
+  self.getPossibilityList(possibilityX, possibilityY).add(possibility)
   self.container.add(particle)
 }
 
 const verticalTopLoopFromLeft = (self: Grid, update: UpdateSpot) => {
   for (let x = 0; x < self.possibilityXCount; x++) {
     for (let y = 0; y < self.possibilityYCount; y++) {
-      update(self.getPossibilityList(x, y))
+      update(self.getPossibilityListByIndex(x, y))
     }
   }
 }
@@ -306,7 +298,7 @@ const verticalTopLoopFromLeft = (self: Grid, update: UpdateSpot) => {
 const verticalTopLoopFromRight = (self: Grid, update: UpdateSpot) => {
   for (let x = self.possibilityYCount - 1; 0 <= x; x--) {
     for (let y = 0; y < self.possibilityYCount; y++) {
-      update(self.getPossibilityList(x, y))
+      update(self.getPossibilityListByIndex(x, y))
     }
   }
 }
@@ -314,7 +306,7 @@ const verticalTopLoopFromRight = (self: Grid, update: UpdateSpot) => {
 const verticalBottomLoopFromLeft = (self: Grid, update: UpdateSpot) => {
   for (let x = 0; x < self.possibilityXCount; x++) {
     for (let y = self.possibilityYCount - 1; 0 <= y; y--) {
-      update(self.getPossibilityList(x, y))
+      update(self.getPossibilityListByIndex(x, y))
     }
   }
 }
@@ -322,7 +314,7 @@ const verticalBottomLoopFromLeft = (self: Grid, update: UpdateSpot) => {
 const verticalBottomLoopFromRight = (self: Grid, update: UpdateSpot) => {
   for (let x = self.possibilityYCount - 1; 0 <= x; x--) {
     for (let y = self.possibilityYCount - 1; 0 <= y; y--) {
-      update(self.getPossibilityList(x, y))
+      update(self.getPossibilityListByIndex(x, y))
     }
   }
 }
@@ -330,7 +322,7 @@ const verticalBottomLoopFromRight = (self: Grid, update: UpdateSpot) => {
 const horizontalTopLoopFromLeft = (self: Grid, update: UpdateSpot) => {
   for (let y = 0; y < self.possibilityYCount; y++) {
     for (let x = 0; x < self.possibilityXCount; x++) {
-      update(self.getPossibilityList(x, y))
+      update(self.getPossibilityListByIndex(x, y))
     }
   }
 }
@@ -338,7 +330,7 @@ const horizontalTopLoopFromLeft = (self: Grid, update: UpdateSpot) => {
 const horizontalTopLoopFromRight = (self: Grid, update: UpdateSpot) => {
   for (let y = self.possibilityYCount - 1; 0 <= y; y--) {
     for (let x = 0; x < self.possibilityXCount; x++) {
-      update(self.getPossibilityList(x, y))
+      update(self.getPossibilityListByIndex(x, y))
     }
   }
 }
@@ -346,7 +338,7 @@ const horizontalTopLoopFromRight = (self: Grid, update: UpdateSpot) => {
 const horizontalBottomLoopFromLeft = (self: Grid, update: UpdateSpot) => {
   for (let y = self.possibilityYCount - 1; 0 <= y; y--) {
     for (let x = 0; x < self.possibilityXCount; x++) {
-      update(self.getPossibilityList(x, y))
+      update(self.getPossibilityListByIndex(x, y))
     }
   }
 }
@@ -354,7 +346,7 @@ const horizontalBottomLoopFromLeft = (self: Grid, update: UpdateSpot) => {
 const horizontalBottomLoopFromRight = (self: Grid, update: UpdateSpot) => {
   for (let y = self.possibilityYCount - 1; 0 <= y; y--) {
     for (let x = self.possibilityYCount - 1; 0 <= x; x--) {
-      update(self.getPossibilityList(x, y))
+      update(self.getPossibilityListByIndex(x, y))
     }
   }
 }

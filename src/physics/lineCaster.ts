@@ -316,9 +316,9 @@ function getPerpendicularOfLine(force: ExternalForce) { // the two points can no
   nx /= len;  // make one unit long
   ny /= len;  // which we call normalising a vector
 
-  const perpendicular = new ExternalForce()
-  perpendicular.vx = nx
-  perpendicular.vy = -ny
+  //const perpendicular = new ExternalForce({})
+  //perpendicular.vx = nx
+  //perpendicular.vy = -ny
 
-  return perpendicular
+  return
 }

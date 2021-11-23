@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js'
 import {Grid} from './grid'
-import {ParticleAttributes} from './particle';
+import {ParticleAttributes, ParticleType} from './particle';
 import {PixiParticleContainer} from './particleContainer';
 import {PixiParticleContainerFactory} from './particleContainerFactory';
 import {PixiGraphicalEntityFactory} from './pixiGraphicalEntity';
@@ -42,13 +42,14 @@ const initGrid = () => {
     },
     weight: 1,
     diameter: 5,
-    decay: 0.01
+    decay: 0.01,
+    type: ParticleType.LIQUID
   }
 
   app.stage.addChild(grid.container as PixiParticleContainer)
 
   const fill = grid.fill(attributes, PixiGraphicalEntityFactory())
-  fill.blueNoise(20, fireflies)
+  fill.blueNoise(15, fireflies)
   //fill.blueNoise(20)
 
   setTimeout(() => grid.start(), 3000)
@@ -71,7 +72,7 @@ const externalForces = (grid: Grid) => {
     lastFrame: 27 * 15
   })
 
-  return [force1, force2]
+  return [force1]
 }
 
 initGrid()
